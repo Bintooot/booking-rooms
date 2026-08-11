@@ -34,10 +34,10 @@ function Banner({ header, theme, toggleTheme }) {
           })}
         </p>
         <div
-          className={`absolute -top-3 -right-5 text-gray-100/50 cursor-pointer hover:scale-110 ${theme ? "rotate-180" : "rotate-0"} duration-200`}
+          className={`absolute -top-3 -right-5 text-gray-100/50 cursor-pointer ${theme ? "rotate-180" : "rotate-0"} duration-200`}
         >
-          <Sun size={105} strokeWidth={1.7} onClick={toggleTheme} />
-          <Moon size={105} strokeWidth={1.7} onClick={toggleTheme} />
+          <Sun size={105} strokeWidth={1.7} />
+          <Moon size={105} strokeWidth={1.7} />
         </div>
       </div>
     </>

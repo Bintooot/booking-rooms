@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   HousePlus,
@@ -9,6 +9,8 @@ import { useState } from "react";
 
 function Sidebar({ theme }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const isActive = location.pathname;
 
   function toggleShrink() {
     setIsCollapsed((prev) => !prev);
@@ -41,7 +43,7 @@ function Sidebar({ theme }) {
   return (
     <>
       <section
-        className={`${isCollapsed ? "w-20" : "w-60"} h-screen py-5 px-3 flex flex-col gap-10 duration-200 overflow-hidden cursor-pointer ${theme ? `bg-slate-800` : `bg-blue-50`}`}
+        className={`${isCollapsed ? "w-20" : "w-60"} py-5 px-3 flex flex-col gap-10 duration-200 overflow-hidden cursor-pointer h-full ${theme ? `bg-slate-800` : `bg-blue-50`}`}
       >
         <div
           className={
@@ -83,7 +85,7 @@ function Sidebar({ theme }) {
                 ) : (
                   <Link
                     to={item.path}
-                    className="flex gap-2 items-center text-sm font-semibold hover:m-1 p-1.5 bg-linear-to-r from-blue-400 to-blue-600 cursor-pointers hover:scale-100 duration-200 text-white rounded"
+                    className={`flex gap-2 items-center text-sm font-semibold hover:m-1 p-1.5 bg-linear-to-r from-blue-400 to-blue-600 cursor-pointers hover:scale-100 duration-200 text-white rounded ${isActive ? 'bg-black': ""}`}
                   >
                     {item.icon}
                     <span className="border border-gray-300 h-5"></span>

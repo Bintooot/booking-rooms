@@ -1,14 +1,14 @@
 import { useOutletContext } from "react-router-dom";
 import Banner from "../components/Banner.jsx";
-import { DoorOpen } from "lucide-react";
+import { DoorOpen, Moon, Sun } from "lucide-react";
 
 function Dashboard() {
   const { theme, toggleTheme } = useOutletContext();
 
   return (
     <>
-      <main className="w-full">
-        <Banner header="Dashbaoard" theme={theme} toggleTheme={toggleTheme} />
+      <main className="w-full h-full">
+        <Banner header="Dashboard" theme={theme} toggleTheme={toggleTheme} />
 
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-5">
           <div

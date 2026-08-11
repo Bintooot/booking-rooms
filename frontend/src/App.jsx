@@ -5,7 +5,7 @@ import MainLayout from "./layouts/MainLayout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 
 import AdminLayout from "./layouts/AdminLayout.jsx";
-import Dashboard from "./pages/Dashbaord.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 import RoomCreation from "./pages/RoomCreation.jsx";
 import UserCreation from "./pages/UserCreation.jsx";
 
