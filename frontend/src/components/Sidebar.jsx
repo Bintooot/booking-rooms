@@ -1,0 +1,95 @@
+import { Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  HousePlus,
+  UserPlus,
+  PanelLeftClose,
+} from "lucide-react";
+import { useState } from "react";
+
+function Sidebar() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  function toggleShrink() {
+    setIsCollapsed((prev) => !prev);
+  }
+
+  const style =
+    "border-2 border-blue-400 hover:scale-105 duration-100 rounded-lg overflow-hidden";
+
+  const navlink = [
+    {
+      icon: <LayoutDashboard />,
+      path: "/dashboard",
+      label: "Dashboard",
+      style: style,
+    },
+    {
+      icon: <HousePlus />,
+      path: "/room-creation",
+      label: "Room Creation",
+      style: style,
+    },
+    {
+      icon: <UserPlus />,
+      path: "/user-creation",
+      label: "User Creation",
+      style: style,
+    },
+  ];
+
+  return (
+    <>
+      <section
+        className={`${isCollapsed ? "w-20" : "w-60"} h-screen py-5 px-3 flex flex-col gap-10 duration-200 overflow-hidden cursor-pointer bg-blue-900`}
+      >
+        <div
+          className={
+            isCollapsed
+              ? `flex justify-center`
+              : `flex justify-between items-center`
+          }
+        >
+          <h1 className={isCollapsed ? `hidden` : `text-white font-semibold`}>
+            ConfeBook
+          </h1>
+          <PanelLeftClose
+            className={
+              isCollapsed
+                ? `rotate-180 duration-200 text-white hover:text-blue-500 hover:translate-x-2`
+                : `text-white hover:text-blue-500 hover:-translate-x-2 duration-200`
+            }
+            onClick={toggleShrink}
+          />
+        </div>
+        <div>
+          <ul className="flex flex-col gap-4">
+            {navlink.map((item) => (
+              <li key={item.path} className={item.style}>
+                {isCollapsed ? (
+                  <Link
+                    className="text-white flex items-center justify-center p-1.5 bg-linear-to-r from-blue-400 to-blue-600 hover:scale-80 duration-200 rounded"
+                    to={item.path}
+                  >
+                    {item.icon}
+                  </Link>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className="flex gap-2 items-center text-sm font-semibold hover:m-1 p-1.5 bg-linear-to-r from-blue-400 to-blue-600 cursor-pointers hover:scale-100 duration-200 text-white rounded"
+                  >
+                    {item.icon}
+                    <span className="border border-gray-300 h-5"></span>
+                    <p>{item.label}</p>
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export default Sidebar;
