@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-function Sidebar() {
+function Sidebar({ theme }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   function toggleShrink() {
@@ -41,7 +41,7 @@ function Sidebar() {
   return (
     <>
       <section
-        className={`${isCollapsed ? "w-20" : "w-60"} h-screen py-5 px-3 flex flex-col gap-10 duration-200 overflow-hidden cursor-pointer bg-blue-900`}
+        className={`${isCollapsed ? "w-20" : "w-60"} h-screen py-5 px-3 flex flex-col gap-10 duration-200 overflow-hidden cursor-pointer ${theme ? `bg-slate-800` : `bg-blue-50`}`}
       >
         <div
           className={
@@ -50,15 +50,22 @@ function Sidebar() {
               : `flex justify-between items-center`
           }
         >
-          <h1 className={isCollapsed ? `hidden` : `text-white font-semibold`}>
-            ConfeBook
+          <h1
+            className={`${isCollapsed ? "hidden" : "block"} text-xl font-bold tracking-tight ${
+              theme ? "text-white" : "text-blue-900"
+            }`}
+          >
+            Confe
+            <span className={theme ? "text-blue-400" : "text-blue-500"}>
+              Book
+            </span>
           </h1>
           <PanelLeftClose
-            className={
+            className={`${
               isCollapsed
-                ? `rotate-180 duration-200 text-white hover:text-blue-500 hover:translate-x-2`
-                : `text-white hover:text-blue-500 hover:-translate-x-2 duration-200`
-            }
+                ? `rotate-180 duration-200 hover:text-blue-500 hover:translate-x-2`
+                : `hover:text-blue-500 hover:-translate-x-2 duration-200`
+            } ${theme ? "text-white" : "text-blue-900"}`}
             onClick={toggleShrink}
           />
         </div>
