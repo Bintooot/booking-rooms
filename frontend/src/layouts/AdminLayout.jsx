@@ -23,14 +23,14 @@ function AdminLayout() {
         <div className="h-full">
           <Sidebar theme={theme} />
         </div>
-        <div className={`flex-1 p-5 ${theme ? "bg-slate-900" : `bg-white`}`}>
-          <Outlet context={{ theme, toggleTheme }} />
+        <div className={`flex-1 overflow-auto h-screen p-5 ${theme ? "bg-slate-900" : `bg-white`}`}>
+          <Outlet context={{ theme, toggleThemew }} />
         </div>
         <div
           className={`absolute hover:scale-110  duration-200 bottom-6 right-6 w-12 h-12 cursor-pointer flex items-center justify-center ${theme ? "bg-blue-900" : "bg-blue-300"} rounded-full ${theme ? "text-white" : "text-blue-900"}`}
           onClick={toggleTheme}
         >
-          {theme ? <Moon /> : <Sun />}
+          {theme ? <Sun /> : <Moon />}
         </div>
       </main>
     </>
