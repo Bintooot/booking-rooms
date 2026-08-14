@@ -346,7 +346,7 @@ function Schedule() {
             </button>
 
             <h2
-              className={`min-w-[180px] text-center text-lg font-semibold ${
+              className={`min-w-45 text-center text-lg font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -445,7 +445,7 @@ function Schedule() {
             return (
               <div
                 key={`${formatDateKey(calendarDay.date)}-${index}`}
-                className={`relative min-h-[135px] p-2 border-b border-r ${
+                className={`relative min-h-33.75 p-2 border-b border-r ${
                   theme
                     ? "border-slate-700"
                     : "border-gray-200"

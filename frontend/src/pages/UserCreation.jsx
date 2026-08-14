@@ -159,7 +159,7 @@ function UserCreation() {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className={`group min-h-[250px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+            className={`group min-h-62.5 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
               theme
                 ? "border-slate-600 hover:border-blue-400 hover:bg-blue-500/5"
                 : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/50"
@@ -194,7 +194,7 @@ function UserCreation() {
             </h3>
 
             <p
-              className={`text-xs text-center mt-2 max-w-[180px] ${
+              className={`text-xs text-center mt-2 max-w-45 ${
                 theme ? "text-gray-500" : "text-gray-400"
               }`}
             >
@@ -206,7 +206,7 @@ function UserCreation() {
           {users.map((user) => (
             <div
               key={user.id}
-              className={`group min-h-[250px] rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+              className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                 theme
                   ? "bg-slate-900/60 border-slate-700 hover:border-slate-600"
                   : "bg-gray-50/50 border-gray-200 hover:border-blue-200"
