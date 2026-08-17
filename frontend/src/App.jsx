@@ -10,6 +10,7 @@ import RoomCreation from "./pages/RoomCreation.jsx";
 import UserCreation from "./pages/UserCreation.jsx";
 import Schedule from "./pages/Schedule.jsx";
 import RoomManagement from "./pages/RoomManagement.jsx";
+import Unavailable from "./pages/Unavailable.jsx";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/user-creation" element={<UserCreation />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/room-management" element={<RoomManagement />} />
+          <Route path="/unavailable" element={<Unavailable />} />
         </Route>
       </Routes>
     </div>

@@ -57,7 +57,7 @@ function Sidebar({ theme }) {
       items: [
         {
           icon: <CalendarDays size={20} />,
-          path: "/bookings",
+          path: "/unavailable",
           label: "Booking Management",
         },
         {
@@ -73,7 +73,7 @@ function Sidebar({ theme }) {
       items: [
         {
           icon: <Users size={20} />,
-          path: "/users",
+          path: "/unavailable",
           label: "User Management",
         },
         {

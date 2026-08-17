@@ -8,63 +8,55 @@ import {
   ShieldCheck,
   Mail,
   User,
-  Briefcase,
   CheckCircle2,
+  LockKeyhole,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createUser, getUsers } from "../api/users.js";
 
 function UserCreation() {
   const { theme, toggleTheme } = useOutletContext();
 
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      setError("");
+
+      const data = await getUsers();
+
+      console.log("Users:", data);
+
+      setUsers(Array.isArray(data) ? data : data.users || []);
+    } catch (error) {
+      console.error("Failed to load users:", error);
+
+      setError(
+        error.response?.data?.error || error.message || "Failed to load users",
+      );
+
+      setUsers([]);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
+    password: "",
     role: "",
-    department: "",
-    status: "Active",
   });
-
-  const users = [
-    {
-      id: 1,
-      name: "Jane Doe",
-      email: "jane.doe@company.com",
-      role: "Administrator",
-      department: "IT",
-      status: "Active",
-      initials: "JD",
-    },
-    {
-      id: 2,
-      name: "Mark Reyes",
-      email: "mark.reyes@company.com",
-      role: "Employee",
-      department: "Marketing",
-      status: "Active",
-      initials: "MR",
-    },
-    {
-      id: 3,
-      name: "Ana Cruz",
-      email: "ana.cruz@company.com",
-      role: "Employee",
-      department: "Finance",
-      status: "Active",
-      initials: "AC",
-    },
-    {
-      id: 4,
-      name: "John Smith",
-      email: "john.smith@company.com",
-      role: "Manager",
-      department: "Operations",
-      status: "Inactive",
-      initials: "JS",
-    },
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,21 +67,42 @@ function UserCreation() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: "",
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("New user:", formData);
+    try {
+      setLoading(true);
 
-    setShowForm(false);
+      await createUser(formData);
 
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      department: "",
-      status: "Active",
-    });
+      // Refresh users from database
+      await loadUsers();
+
+      setShowForm(false);
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+      });
+    } catch (error) {
+      console.error(
+        "Failed to create user:",
+        error.response?.data?.error || error.message,
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = `w-full rounded-lg border px-4 py-3 text-sm outline-none transition ${
@@ -100,11 +113,7 @@ function UserCreation() {
 
   return (
     <main className="w-full min-h-screen">
-      <Banner
-        header="User Creation"
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Banner header="User Creation" theme={theme} toggleTheme={toggleTheme} />
 
       {/* Header */}
       <div className="mt-6 mb-6">
@@ -141,9 +150,7 @@ function UserCreation() {
       {/* User grid */}
       <section
         className={`relative rounded-2xl border p-6 overflow-hidden ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         {/* Background decoration */}
@@ -154,7 +161,6 @@ function UserCreation() {
         />
 
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-
           {/* CREATE USER CARD */}
           <button
             type="button"
@@ -203,105 +209,85 @@ function UserCreation() {
           </button>
 
           {/* EXISTING USERS */}
-          {users.map((user) => (
-            <div
-              key={user.id}
-              className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                theme
-                  ? "bg-slate-900/60 border-slate-700 hover:border-slate-600"
-                  : "bg-gray-50/50 border-gray-200 hover:border-blue-200"
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                {/* Avatar */}
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-bold ${
-                    theme
-                      ? "bg-blue-500/10 text-blue-400"
-                      : "bg-blue-50 text-blue-600"
-                  }`}
-                >
-                  {user.initials}
-                </div>
+          {users.map((user) => {
+            const initials = user.name
+              .split(" ")
+              .map((part) => part[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
 
-                {/* Status */}
-                <span
-                  className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${
-                    user.status === "Active"
-                      ? theme
+            return (
+              <div
+                key={user.id}
+                className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  theme
+                    ? "bg-slate-900/60 border-slate-700 hover:border-slate-600"
+                    : "bg-gray-50/50 border-gray-200 hover:border-blue-200"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  {/* Avatar */}
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-bold ${
+                      theme
+                        ? "bg-blue-500/10 text-blue-400"
+                        : "bg-blue-50 text-blue-600"
+                    }`}
+                  >
+                    {initials}
+                  </div>
+
+                  {/* Status */}
+                  <span
+                    className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${
+                      theme
                         ? "bg-green-500/10 text-green-400"
                         : "bg-green-50 text-green-600"
-                      : theme
-                        ? "bg-gray-500/10 text-gray-400"
-                        : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      user.status === "Active"
-                        ? "bg-green-400"
-                        : "bg-gray-400"
-                    }`}
-                  />
-                  {user.status}
-                </span>
-              </div>
-
-              <div className="mt-6">
-                <h3
-                  className={`font-semibold ${
-                    theme ? "text-white" : "text-slate-900"
-                  }`}
-                >
-                  {user.name}
-                </h3>
-
-                <p
-                  className={`text-xs mt-1 truncate ${
-                    theme ? "text-gray-500" : "text-gray-400"
-                  }`}
-                >
-                  {user.email}
-                </p>
-              </div>
-
-              <div className="mt-5 space-y-2">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck
-                    size={14}
-                    className={
-                      theme ? "text-blue-400" : "text-blue-500"
-                    }
-                  />
-
-                  <span
-                    className={`text-xs ${
-                      theme ? "text-gray-300" : "text-slate-600"
                     }`}
                   >
-                    {user.role}
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                    Active
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Briefcase
-                    size={14}
-                    className={
+                <div className="mt-6">
+                  <h3
+                    className={`font-semibold ${
+                      theme ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    {user.name}
+                  </h3>
+
+                  <p
+                    className={`text-xs mt-1 truncate ${
                       theme ? "text-gray-500" : "text-gray-400"
-                    }
-                  />
-
-                  <span
-                    className={`text-xs ${
-                      theme ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
-                    {user.department}
-                  </span>
+                    {user.email}
+                  </p>
+                </div>
+
+                <div className="mt-5">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck
+                      size={14}
+                      className={theme ? "text-blue-400" : "text-blue-500"}
+                    />
+
+                    <span
+                      className={`text-xs ${
+                        theme ? "text-gray-300" : "text-slate-600"
+                      }`}
+                    >
+                      {user.role}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -328,7 +314,7 @@ function UserCreation() {
 
           {/* Modal */}
           <section
-            className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${
+            className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-2xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
                 : "bg-white border border-gray-200"
@@ -402,48 +388,25 @@ function UserCreation() {
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* First Name */}
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        theme ? "text-gray-300" : "text-slate-700"
-                      }`}
-                    >
-                      First Name
-                    </label>
+                {/* Name */}
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Full Name
+                  </label>
 
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      placeholder="Jane"
-                      className={inputClass}
-                      required
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-2 ${
-                        theme ? "text-gray-300" : "text-slate-700"
-                      }`}
-                    >
-                      Last Name
-                    </label>
-
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      placeholder="Doe"
-                      className={inputClass}
-                      required
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Jane Doe"
+                    className={inputClass}
+                    required
+                  />
                 </div>
               </div>
 
@@ -486,102 +449,68 @@ function UserCreation() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Role */}
-                    <div>
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          theme ? "text-gray-300" : "text-slate-700"
-                        }`}
-                      >
-                        Role
-                      </label>
-
-                      <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className={inputClass}
-                        required
-                      >
-                        <option value="">Select role</option>
-                        <option value="Administrator">
-                          Administrator
-                        </option>
-                        <option value="Manager">Manager</option>
-                        <option value="Employee">Employee</option>
-                      </select>
-                    </div>
-
-                    {/* Department */}
-                    <div>
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          theme ? "text-gray-300" : "text-slate-700"
-                        }`}
-                      >
-                        Department
-                      </label>
-
-                      <select
-                        name="department"
-                        value={formData.department}
-                        onChange={handleChange}
-                        className={inputClass}
-                        required
-                      >
-                        <option value="">Select department</option>
-                        <option value="IT">IT</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Operations">Operations</option>
-                        <option value="Human Resources">
-                          Human Resources
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account Status */}
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-2 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Account Status
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {["Active", "Inactive"].map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          status,
-                        }))
-                      }
-                      className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition ${
-                        formData.status === status
-                          ? theme
-                            ? "border-blue-400 bg-blue-500/10 text-blue-400"
-                            : "border-blue-500 bg-blue-50 text-blue-600"
-                          : theme
-                            ? "border-slate-700 text-gray-400 hover:bg-slate-700"
-                            : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                  {/* Password */}
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        theme ? "text-gray-300" : "text-slate-700"
                       }`}
                     >
-                      {formData.status === status && (
-                        <CheckCircle2 size={15} />
-                      )}
+                      Password
+                    </label>
 
-                      {status}
-                    </button>
-                  ))}
+                    <div className="relative">
+                      <LockKeyhole
+                        size={16}
+                        className={`absolute left-4 top-1/2 -translate-y-1/2 ${
+                          theme ? "text-gray-500" : "text-gray-400"
+                        }`}
+                      />
+
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Enter a password"
+                        className={`${inputClass} pl-11`}
+                        minLength={8}
+                        required
+                      />
+                    </div>
+
+                    <p
+                      className={`text-xs mt-2 ${
+                        theme ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      Password must be at least 8 characters.
+                    </p>
+                  </div>
+
+                  {/* Role */}
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        theme ? "text-gray-300" : "text-slate-700"
+                      }`}
+                    >
+                      Role
+                    </label>
+
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className={inputClass}
+                      required
+                    >
+                      <option value="">Select role</option>
+                      <option value="Administrator">Administrator</option>
+                      <option value="Manager">Manager</option>
+                      <option value="Employee">Employee</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -593,7 +522,10 @@ function UserCreation() {
               >
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    resetForm();
+                  }}
                   className={`px-5 py-2.5 rounded-lg text-sm font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
@@ -605,10 +537,12 @@ function UserCreation() {
 
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition"
+                  disabled={loading}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <UserPlus size={16} />
-                  Create User
+
+                  {loading ? "Creating..." : "Create User"}
                 </button>
               </div>
             </form>

@@ -1,4 +1,4 @@
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext, useNavigate, Link } from "react-router-dom";
 import Banner from "../components/Banner.jsx";
 import {
   Search,
@@ -30,7 +30,8 @@ function RoomManagement() {
       location: "2nd Floor",
       capacity: 12,
       status: "Available",
-      description: "Large conference room suitable for presentations and team meetings.",
+      description:
+        "Large conference room suitable for presentations and team meetings.",
       amenities: ["WiFi", "Projector", "Display"],
     },
     {
@@ -39,7 +40,8 @@ function RoomManagement() {
       location: "1st Floor",
       capacity: 6,
       status: "Occupied",
-      description: "Small private room for quick meetings and team discussions.",
+      description:
+        "Small private room for quick meetings and team discussions.",
       amenities: ["WiFi", "Display"],
     },
     {
@@ -48,7 +50,8 @@ function RoomManagement() {
       location: "3rd Floor",
       capacity: 20,
       status: "Available",
-      description: "Premium meeting room designed for executive and management meetings.",
+      description:
+        "Premium meeting room designed for executive and management meetings.",
       amenities: ["WiFi", "Projector", "Display"],
     },
     {
@@ -57,7 +60,8 @@ function RoomManagement() {
       location: "2nd Floor",
       capacity: 8,
       status: "Maintenance",
-      description: "Medium-sized meeting room currently undergoing maintenance.",
+      description:
+        "Medium-sized meeting room currently undergoing maintenance.",
       amenities: ["WiFi", "Display"],
     },
     {
@@ -66,7 +70,8 @@ function RoomManagement() {
       location: "1st Floor",
       capacity: 30,
       status: "Available",
-      description: "Spacious room designed for training sessions and workshops.",
+      description:
+        "Spacious room designed for training sessions and workshops.",
       amenities: ["WiFi", "Projector", "Display"],
     },
     {
@@ -117,13 +122,10 @@ function RoomManagement() {
         room.id === id
           ? {
               ...room,
-              status:
-                room.status === "Available"
-                  ? "Maintenance"
-                  : "Available",
+              status: room.status === "Available" ? "Maintenance" : "Available",
             }
-          : room
-      )
+          : room,
+      ),
     );
 
     setOpenMenu(null);
@@ -133,14 +135,12 @@ function RoomManagement() {
     const room = rooms.find((item) => item.id === id);
 
     const confirmed = window.confirm(
-      `Delete "${room?.name}"? This action cannot be undone.`
+      `Delete "${room?.name}"? This action cannot be undone.`,
     );
 
     if (!confirmed) return;
 
-    setRooms((currentRooms) =>
-      currentRooms.filter((room) => room.id !== id)
-    );
+    setRooms((currentRooms) => currentRooms.filter((room) => room.id !== id));
 
     setOpenMenu(null);
   };
@@ -173,14 +173,13 @@ function RoomManagement() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/room-creation")}
+        <Link
+          to="/room-creation"
           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition"
         >
           <Plus size={17} />
           Create Room
-        </button>
+        </Link>
       </div>
 
       {/* Summary */}
@@ -249,9 +248,7 @@ function RoomManagement() {
       {/* Search & Filters */}
       <section
         className={`mt-6 rounded-xl border p-4 ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         <div className="flex flex-col md:flex-row gap-3">
@@ -340,7 +337,7 @@ function RoomManagement() {
               {/* Status */}
               <span
                 className={`absolute top-3 left-3 px-2.5 py-1 rounded-full border text-[10px] font-semibold ${getStatusStyle(
-                  room.status
+                  room.status,
                 )}`}
               >
                 {room.status}
@@ -351,9 +348,7 @@ function RoomManagement() {
                 <button
                   type="button"
                   onClick={() =>
-                    setOpenMenu(
-                      openMenu === room.id ? null : room.id
-                    )
+                    setOpenMenu(openMenu === room.id ? null : room.id)
                   }
                   className={`p-2 rounded-lg ${
                     theme
@@ -414,9 +409,7 @@ function RoomManagement() {
 
                     <div
                       className={`border-t ${
-                        theme
-                          ? "border-slate-700"
-                          : "border-gray-100"
+                        theme ? "border-slate-700" : "border-gray-100"
                       }`}
                     />
 
@@ -528,16 +521,12 @@ function RoomManagement() {
       {filteredRooms.length === 0 && (
         <div
           className={`mt-6 rounded-xl border p-12 text-center ${
-            theme
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
           }`}
         >
           <DoorOpen
             size={35}
-            className={`mx-auto ${
-              theme ? "text-gray-600" : "text-gray-300"
-            }`}
+            className={`mx-auto ${theme ? "text-gray-600" : "text-gray-300"}`}
           />
 
           <h3

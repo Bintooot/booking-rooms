@@ -38,7 +38,11 @@ export const getUserbyIdController = async (req, res) => {
 
 export const registerUserController = async (req, res) => {
   try {
-    const { name, email, password_hash, role } = req.body;
+    const { name, email, password, role } = req.body;
+
+    console.log(req.body);
+
+    let password_hash = password;
 
     if (!name || !email || !password_hash || !role) {
       return res
@@ -77,19 +81,18 @@ export const updateUserController = async (req, res) => {
   }
 };
 
-
 export const deleteUserController = async (req, res) => {
-  try{
+  try {
     const userId = req.params.id;
     const deletedUser = await deleteUser(userId);
 
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     res.json({ message: "User deleted successfully" });
-  }catch (error) {
+  } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
