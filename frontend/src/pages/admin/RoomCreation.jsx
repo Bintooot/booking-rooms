@@ -1,5 +1,8 @@
 import { useOutletContext } from "react-router-dom";
-import Banner from "../components/Banner.jsx";
+import Banner from "../../components/Banner.jsx";
+
+import { useTheme } from "../../context/ThemeContext.jsx";
+
 import {
   Plus,
   Users,
@@ -13,7 +16,7 @@ import {
 import { useState } from "react";
 
 function RoomCreation() {
-  const { theme, toggleTheme } = useOutletContext();
+  const { theme } = useTheme();
   const [showForm, setShowForm] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -100,11 +103,7 @@ function RoomCreation() {
 
   return (
     <main className="w-full min-h-screen">
-      <Banner
-        header="Room Creation"
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Banner header="Room Creation" theme={theme} />
 
       {/* Page introduction */}
       <div className="mt-6 mb-6">
@@ -128,9 +127,7 @@ function RoomCreation() {
       {/* Floor grid */}
       <section
         className={`relative rounded-2xl border p-6 overflow-hidden ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         {/* Decorative grid */}
@@ -381,16 +378,12 @@ function RoomCreation() {
                     required
                   >
                     <option value="">Select room type</option>
-                    <option value="Conference Room">
-                      Conference Room
-                    </option>
+                    <option value="Conference Room">Conference Room</option>
                     <option value="Meeting Room">Meeting Room</option>
                     <option value="Huddle Room">Huddle Room</option>
                     <option value="Training Room">Training Room</option>
                     <option value="Boardroom">Boardroom</option>
-                    <option value="Private Office">
-                      Private Office
-                    </option>
+                    <option value="Private Office">Private Office</option>
                   </select>
                 </div>
 

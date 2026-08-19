@@ -1,5 +1,6 @@
 import { useOutletContext, useNavigate, Link } from "react-router-dom";
-import Banner from "../components/Banner.jsx";
+import Banner from "../../components/Banner.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import {
   Search,
   Plus,
@@ -16,7 +17,7 @@ import {
 import { useMemo, useState } from "react";
 
 function RoomManagement() {
-  const { theme, toggleTheme } = useOutletContext();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
@@ -147,11 +148,7 @@ function RoomManagement() {
 
   return (
     <main className="w-full min-h-screen">
-      <Banner
-        header="Room Management"
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Banner header="Room Management" theme={theme} />
 
       {/* Page Header */}
       <div className="mt-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">

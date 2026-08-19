@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import maintenance from "../assets/maintenance.svg";
+import maintenance from "../../assets/maintenance.svg";
 
 function Unavailable() {
   const navigate = useNavigate();

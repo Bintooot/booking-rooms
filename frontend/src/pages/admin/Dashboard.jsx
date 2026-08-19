@@ -1,5 +1,8 @@
 import { useOutletContext } from "react-router-dom";
-import Banner from "../components/Banner.jsx";
+
+import Banner from "../../components/Banner.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
+
 import {
   Clock,
   DoorOpen,
@@ -12,7 +15,7 @@ import {
 import { useEffect, useState } from "react";
 
 function Dashboard() {
-  const { theme, toggleTheme } = useOutletContext();
+  const { theme } = useTheme();
 
   const [progress, setProgress] = useState(0);
 
@@ -105,11 +108,7 @@ function Dashboard() {
 
   return (
     <main className="w-full">
-      <Banner
-        header="Dashboard"
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Banner header="Dashboard" theme={theme} />
 
       {/* Summary cards */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
@@ -173,13 +172,10 @@ function Dashboard() {
 
       {/* Main dashboard content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-
         {/* Room utilization */}
         <section
           className={`lg:col-span-2 rounded-xl border p-6 ${
-            theme
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
           }`}
         >
           <div className="flex items-center justify-between mb-6">
@@ -252,9 +248,7 @@ function Dashboard() {
         {/* Today's activity */}
         <section
           className={`rounded-xl border p-6 ${
-            theme
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
           }`}
         >
           <div className="mb-5">
@@ -277,10 +271,7 @@ function Dashboard() {
 
           <div className="space-y-5">
             {recentActivity.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-3"
-              >
+              <div key={activity.id} className="flex items-start gap-3">
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                     theme
@@ -325,9 +316,7 @@ function Dashboard() {
       {/* Upcoming bookings */}
       <section
         className={`rounded-xl border p-6 mt-6 ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         <div className="flex items-center justify-between mb-1">

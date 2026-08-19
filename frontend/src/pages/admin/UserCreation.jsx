@@ -1,5 +1,6 @@
 import { useOutletContext } from "react-router-dom";
-import Banner from "../components/Banner";
+import Banner from "../../components/Banner.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import {
   Plus,
   X,
@@ -12,10 +13,10 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createUser, getUsers } from "../api/users.js";
+import { createUser, getUsers } from "../../api/users.js";
 
 function UserCreation() {
-  const { theme, toggleTheme } = useOutletContext();
+  const { theme } = useTheme();
 
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -113,7 +114,7 @@ function UserCreation() {
 
   return (
     <main className="w-full min-h-screen">
-      <Banner header="User Creation" theme={theme} toggleTheme={toggleTheme} />
+      <Banner header="User Creation" theme={theme} />
 
       {/* Header */}
       <div className="mt-6 mb-6">

@@ -1,5 +1,6 @@
 import { useOutletContext } from "react-router-dom";
-import Banner from "../components/Banner.jsx";
+import Banner from "../../components/Banner.jsx";
+import { useTheme } from "../../context/ThemeContext.jsx";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,11 +12,9 @@ import {
 import { useMemo, useState } from "react";
 
 function Schedule() {
-  const { theme, toggleTheme } = useOutletContext();
+  const { theme } = useTheme();
 
-  const [currentDate, setCurrentDate] = useState(
-    new Date(2026, 7, 14)
-  );
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 14));
 
   const [roomFilter, setRoomFilter] = useState("All Rooms");
 
@@ -224,17 +223,13 @@ function Schedule() {
       return bookings;
     }
 
-    return bookings.filter(
-      (booking) => booking.room === roomFilter
-    );
+    return bookings.filter((booking) => booking.room === roomFilter);
   }, [roomFilter]);
 
   const getBookingsForDate = (date) => {
     const key = formatDateKey(date);
 
-    return filteredBookings.filter(
-      (booking) => booking.date === key
-    );
+    return filteredBookings.filter((booking) => booking.date === key);
   };
 
   const goToPreviousMonth = () => {
@@ -287,11 +282,7 @@ function Schedule() {
 
   return (
     <main className="w-full min-h-screen">
-      <Banner
-        header="Schedule"
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Banner header="Schedule" theme={theme} />
 
       {/* Page Header */}
       <div className="mt-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -325,9 +316,7 @@ function Schedule() {
       {/* Calendar Controls */}
       <section
         className={`mt-6 rounded-xl border p-4 ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -407,9 +396,7 @@ function Schedule() {
       {/* Calendar */}
       <section
         className={`mt-4 rounded-xl border overflow-hidden ${
-          theme
-            ? "bg-slate-800 border-slate-700"
-            : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         {/* Week days */}
@@ -446,9 +433,7 @@ function Schedule() {
               <div
                 key={`${formatDateKey(calendarDay.date)}-${index}`}
                 className={`relative min-h-33.75 p-2 border-b border-r ${
-                  theme
-                    ? "border-slate-700"
-                    : "border-gray-200"
+                  theme ? "border-slate-700" : "border-gray-200"
                 } ${
                   !calendarDay.currentMonth
                     ? theme
@@ -494,7 +479,7 @@ function Schedule() {
                       key={booking.id}
                       title={`${booking.title} • ${booking.room} • ${booking.start} - ${booking.end}`}
                       className={`w-full text-left border rounded-md px-2 py-1.5 transition hover:shadow-sm ${getBookingColor(
-                        booking.color
+                        booking.color,
                       )}`}
                     >
                       <p className="text-[10px] font-semibold truncate">
@@ -506,9 +491,7 @@ function Schedule() {
                           {booking.start}
                         </span>
 
-                        <span className="text-[9px] opacity-50">
-                          •
-                        </span>
+                        <span className="text-[9px] opacity-50">•</span>
 
                         <span className="text-[9px] opacity-75 truncate">
                           {booking.room}
@@ -549,9 +532,7 @@ function Schedule() {
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
           <span
-            className={`text-xs ${
-              theme ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-xs ${theme ? "text-gray-500" : "text-gray-400"}`}
           >
             Reservation
           </span>
@@ -560,9 +541,7 @@ function Schedule() {
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
           <span
-            className={`text-xs ${
-              theme ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-xs ${theme ? "text-gray-500" : "text-gray-400"}`}
           >
             Meeting
           </span>
@@ -571,9 +550,7 @@ function Schedule() {
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
           <span
-            className={`text-xs ${
-              theme ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-xs ${theme ? "text-gray-500" : "text-gray-400"}`}
           >
             Management
           </span>

@@ -5,12 +5,13 @@ import MainLayout from "./layouts/MainLayout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 
 import AdminLayout from "./layouts/AdminLayout.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import RoomCreation from "./pages/RoomCreation.jsx";
-import UserCreation from "./pages/UserCreation.jsx";
-import Schedule from "./pages/Schedule.jsx";
-import RoomManagement from "./pages/RoomManagement.jsx";
-import Unavailable from "./pages/Unavailable.jsx";
+import Dashboard from "./pages/admin/Dashboard.jsx";
+import RoomCreation from "./pages/admin/RoomCreation.jsx";
+import UserCreation from "./pages/admin/UserCreation.jsx";
+import Schedule from "./pages/admin/Schedule.jsx";
+import RoomManagement from "./pages/admin/RoomManagement.jsx";
+import Unavailable from "./pages/admin/Unavailable.jsx";
+import Login from "./pages/public/Login.jsx";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/rooms" element={<RoomPage />} />
           <Route path="/bookings" element={<BookingPage />} />
+          <Route path="/login" element={<Login />} />
         </Route>
 
         {/* Admin Portal */}
