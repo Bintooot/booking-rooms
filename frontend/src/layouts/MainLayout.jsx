@@ -14,7 +14,7 @@ function AdminLayout() {
           : "bg-gray-100/50 bg-[linear-gradient(to_right,s#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-size[32px_32px]"
       }`}
     >
-      <div className="flex-1 p-5">
+      <div className="flex-1 p-3">
         <Outlet />
       </div>
       <Theme />
