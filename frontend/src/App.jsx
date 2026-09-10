@@ -18,10 +18,7 @@ function App() {
     <div>
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/rooms" element={<RoomPage />} />
-          <Route path="/bookings" element={<BookingPage />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
         </Route>
 
         {/* Admin Portal */}

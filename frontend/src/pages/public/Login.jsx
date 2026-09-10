@@ -6,13 +6,13 @@ function Login() {
 
   const vacancies = [
     { room: "Room 1", availability: true },
-    { room: "Room 1", availability: false },
-    { room: "Room 1", availability: true },
-    { room: "Room 1", availability: true },
-    { room: "Room 1", availability: false },
-    { room: "Room 1", availability: true },
-    { room: "Room 1", availability: true },
-    { room: "Room 1", availability: true },
+    { room: "Room 2", availability: false },
+    { room: "Room 3", availability: true },
+    { room: "Room 4", availability: true },
+    { room: "Room 5", availability: false },
+    { room: "Room 6", availability: true },
+    { room: "Room 7", availability: true },
+    { room: "Room 8", availability: false },
   ];
 
   return (
@@ -49,43 +49,12 @@ function Login() {
           <span
             className={`text-xs font-medium ${theme ? "text-slate-300" : "text-slate-600"}`}
           >
-            {vacancies.length} rooms free now
+            {vacancies.filter((v) => v.availability).length} rooms free now
           </span>
         </div>
       </header>
 
-      <section className="w-full h-screen">
-        <div className="w-[30%] overflow-y-scroll scrollbar-none">
-          {vacancies.map((vacancy) => (
-            <div
-              key={vacancy.room}
-              className={`w-full mb-5 h-30 border rounded flex items-center justify-center ${
-                vacancy.availability
-                  ? theme
-                    ? "border-emerald-700 bg-emerald-900/20"
-                    : "border-emerald-300 bg-emerald-50"
-                  : theme
-                    ? "border-red-900 bg-red-950/30"
-                    : "border-red-200 bg-red-50"
-              }`}
-            >
-              <p
-                className={`font-medium ${
-                  vacancy.availability
-                    ? theme
-                      ? "text-emerald-300"
-                      : "text-emerald-700"
-                    : theme
-                      ? "text-red-300"
-                      : "text-red-700"
-                }`}
-              >
-                {vacancy.room}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+    
     </main>
   );
 }
