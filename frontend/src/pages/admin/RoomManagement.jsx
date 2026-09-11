@@ -19,6 +19,8 @@ import {
   X,
   MapPin,
   Check,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 
 const AVAILABLE_AMENITIES = [
@@ -42,6 +44,14 @@ function RoomManagement() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
+  const [viewMode, setViewMode] = useState(
+    () => localStorage.getItem("confe_room_view_mode") || "grid"
+  );
+
+  const handleViewChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem("confe_room_view_mode", mode);
+  };
 
   // Edit Modal State
   const [editingRoom, setEditingRoom] = useState(null);
@@ -78,21 +88,23 @@ function RoomManagement() {
         name.toLowerCase().includes(search.toLowerCase()) ||
         loc.toLowerCase().includes(search.toLowerCase());
 
+      const roomStatus = room.status || (room.is_active === false ? "Maintenance" : "Available");
       const matchesStatus =
-        statusFilter === "All" || room.status === statusFilter;
+        statusFilter === "All" || roomStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
   }, [rooms, search, statusFilter]);
 
   const getStatusStyle = (status) => {
-    if (status === "Available") {
+    const s = status || "Available";
+    if (s === "Available") {
       return theme
         ? "bg-green-500/15 text-green-400 border-green-500/30"
         : "bg-green-50 text-green-700 border-green-200";
     }
 
-    if (status === "Occupied") {
+    if (s === "Occupied") {
       return theme
         ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
         : "bg-amber-50 text-amber-700 border-amber-200";
@@ -104,11 +116,12 @@ function RoomManagement() {
   };
 
   const handleToggleStatus = async (room) => {
-    const nextStatus = room.status === "Maintenance" ? "Available" : "Maintenance";
+    const currentStatus = room.status || (room.is_active === false ? "Maintenance" : "Available");
+    const nextStatus = currentStatus === "Maintenance" ? "Available" : "Maintenance";
     try {
       await updateRoom(room.id, { status: nextStatus, is_active: nextStatus !== "Maintenance" });
       setRooms((prev) =>
-        prev.map((r) => (r.id === room.id ? { ...r, status: nextStatus } : r))
+        prev.map((r) => (r.id === room.id ? { ...r, status: nextStatus, is_active: nextStatus !== "Maintenance" } : r))
       );
       showToast(`"${room.name}" marked as ${nextStatus}`);
     } catch {
@@ -326,15 +339,56 @@ function RoomManagement() {
             <option value="Occupied">Occupied</option>
             <option value="Maintenance">Maintenance</option>
           </select>
+
+          {/* View Toggle (Cards / Table) */}
+          <div
+            className={`flex items-center p-1 rounded-xl border shrink-0 ${
+              theme
+                ? "bg-slate-900 border-slate-700"
+                : "bg-gray-50 border-gray-200"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => handleViewChange("grid")}
+              title="Card view"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                viewMode === "grid"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : theme
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-slate-900"
+              }`}
+            >
+              <LayoutGrid size={15} />
+              <span className="hidden sm:inline">Cards</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewChange("table")}
+              title="Table view"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                viewMode === "table"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : theme
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-slate-900"
+              }`}
+            >
+              <List size={15} />
+              <span className="hidden sm:inline">Table</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Room Cards Grid */}
+      {/* Rooms Content */}
       {loading ? (
         <div className="py-16 text-center text-xs text-gray-400">
           Loading rooms...
         </div>
-      ) : (
+      ) : filteredRooms.length === 0 ? null : viewMode === "grid" ? (
+        /* Room Cards Grid */
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
           {filteredRooms.map((room) => (
             <article
@@ -357,10 +411,10 @@ function RoomManagement() {
               >
                 <span
                   className={`px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
-                    room.status,
+                    room.status || (room.is_active === false ? "Maintenance" : "Available"),
                   )}`}
                 >
-                  {room.status}
+                  {room.status || (room.is_active === false ? "Maintenance" : "Available")}
                 </span>
 
                 {/* Dropdown Menu */}
@@ -416,7 +470,7 @@ function RoomManagement() {
                         }`}
                       >
                         <Power size={14} />
-                        {room.status === "Maintenance"
+                        {(room.status || (room.is_active === false ? "Maintenance" : "Available")) === "Maintenance"
                           ? "Mark Available"
                           : "Mark Maintenance"}
                       </button>
@@ -546,6 +600,225 @@ function RoomManagement() {
               </div>
             </article>
           ))}
+        </section>
+      ) : (
+        /* Room Table View */
+        <section
+          className={`mt-6 rounded-3xl border overflow-hidden shadow-sm ${
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          }`}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr
+                  className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                    theme
+                      ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                      : "border-gray-200 bg-gray-50 text-gray-500"
+                  }`}
+                >
+                  <th className="py-3.5 px-5">Room Details</th>
+                  <th className="py-3.5 px-4">Location</th>
+                  <th className="py-3.5 px-4">Capacity & Size</th>
+                  <th className="py-3.5 px-4">Amenities</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+                {filteredRooms.map((room) => {
+                  const roomStatus = room.status || (room.is_active === false ? "Maintenance" : "Available");
+                  return (
+                    <tr
+                      key={room.id}
+                      className={`transition ${
+                        theme ? "hover:bg-slate-700/40" : "hover:bg-blue-50/40"
+                      }`}
+                    >
+                      {/* Room Details */}
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-3.5">
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                              theme
+                                ? "bg-blue-500/15 text-blue-400"
+                                : "bg-blue-50 text-blue-600"
+                            }`}
+                          >
+                            <DoorOpen size={16} />
+                          </div>
+                          <div>
+                            <span
+                              className={`font-bold text-xs block ${
+                                theme ? "text-white" : "text-slate-900"
+                              }`}
+                            >
+                              {room.name}
+                            </span>
+                            <span
+                              className={`text-[10px] ${
+                                theme ? "text-gray-400" : "text-gray-500"
+                              }`}
+                            >
+                              {room.type || "Meeting Room"}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Location */}
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs ${
+                            theme ? "text-gray-300" : "text-slate-700"
+                          }`}
+                        >
+                          <MapPin size={13} className="text-gray-400 shrink-0" />
+                          {room.location || "Office Space"}
+                        </span>
+                      </td>
+
+                      {/* Capacity & Size */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-medium ${
+                              theme ? "text-gray-300" : "text-slate-700"
+                            }`}
+                          >
+                            {room.capacity} seats
+                          </span>
+                          <span
+                            className={`capitalize px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+                              room.size === "large"
+                                ? theme
+                                  ? "bg-purple-500/15 text-purple-400"
+                                  : "bg-purple-50 text-purple-700"
+                                : room.size === "medium"
+                                  ? theme
+                                    ? "bg-blue-500/15 text-blue-400"
+                                    : "bg-blue-50 text-blue-700"
+                                  : theme
+                                    ? "bg-slate-700 text-gray-300"
+                                    : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {room.size || "medium"}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Amenities */}
+                      <td className="py-4 px-4">
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {(room.amenities || []).slice(0, 3).map((amenity) => (
+                            <span
+                              key={amenity}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                                theme
+                                  ? "bg-slate-700/80 text-gray-300"
+                                  : "bg-blue-50 text-blue-700"
+                              }`}
+                            >
+                              {amenity === "WiFi" && <Wifi size={10} />}
+                              {amenity === "Projector" && <Monitor size={10} />}
+                              {amenity === "Display" && <Monitor size={10} />}
+                              {amenity}
+                            </span>
+                          ))}
+                          {(room.amenities || []).length > 3 && (
+                            <span
+                              className={`px-1.5 py-0.5 rounded-md text-[10px] font-medium ${
+                                theme
+                                  ? "text-gray-400 bg-slate-700/60"
+                                  : "text-gray-500 bg-gray-100"
+                              }`}
+                            >
+                              +{(room.amenities || []).length - 3}
+                            </span>
+                          )}
+                          {(!room.amenities || room.amenities.length === 0) && (
+                            <span className="text-gray-400 text-[11px]">—</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                            roomStatus
+                          )}`}
+                        >
+                          {roomStatus}
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => navigate("/schedule")}
+                            title="View Schedule"
+                            className={`p-2 rounded-xl transition ${
+                              theme
+                                ? "text-gray-400 hover:text-white hover:bg-slate-700"
+                                : "text-slate-500 hover:text-slate-900 hover:bg-gray-100"
+                            }`}
+                          >
+                            <CalendarDays size={15} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(room)}
+                            title={
+                              roomStatus === "Maintenance"
+                                ? "Mark Available"
+                                : "Mark Maintenance"
+                            }
+                            className={`p-2 rounded-xl transition ${
+                              roomStatus === "Maintenance"
+                                ? "text-amber-500 hover:bg-amber-500/15"
+                                : theme
+                                  ? "text-gray-400 hover:text-white hover:bg-slate-700"
+                                  : "text-slate-500 hover:text-slate-900 hover:bg-gray-100"
+                            }`}
+                          >
+                            <Power size={15} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(room)}
+                            title="Edit Details"
+                            className={`p-2 rounded-xl transition ${
+                              theme
+                                ? "text-blue-400 hover:bg-blue-400/15"
+                                : "text-blue-600 hover:bg-blue-50"
+                            }`}
+                          >
+                            <Pencil size={15} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(room)}
+                            title="Delete Room"
+                            className="p-2 rounded-xl text-red-500 hover:bg-red-500/15 transition"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

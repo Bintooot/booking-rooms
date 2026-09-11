@@ -41,7 +41,7 @@ function Dashboard() {
     loadDashboardData();
   }, []);
 
-  const totalRooms = rooms.length || 6;
+  const totalRooms = rooms.length;
   const occupiedRooms = rooms.filter((r) => r.status === "Occupied").length;
   const maintenanceRooms = rooms.filter((r) => r.status === "Maintenance").length;
   const availableRooms = totalRooms - occupiedRooms - maintenanceRooms;

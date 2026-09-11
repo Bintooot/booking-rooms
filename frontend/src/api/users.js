@@ -1,27 +1,28 @@
 import { api } from "./client.js";
-import { INITIAL_USERS } from "./mockData.js";
 
 function getLocalUsers() {
   const saved = localStorage.getItem("confe_users");
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
     } catch {
-      return INITIAL_USERS;
+      return [];
     }
   }
-  localStorage.setItem("confe_users", JSON.stringify(INITIAL_USERS));
-  return INITIAL_USERS;
+  return [];
 }
 
 function saveLocalUsers(users) {
-  localStorage.setItem("confe_users", JSON.stringify(users));
+  localStorage.setItem("confe_users", JSON.stringify(users || []));
 }
 
 export async function getUsers() {
   try {
     const response = await api.get("/users");
-    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+    if (response.data && Array.isArray(response.data)) {
       saveLocalUsers(response.data);
       return response.data;
     }

@@ -1,5 +1,4 @@
 import { api } from "./client.js";
-import { INITIAL_BOOKINGS } from "./mockData.js";
 
 export function normalizeBooking(b, fallback = {}) {
   if (!b) return b;
@@ -61,24 +60,25 @@ function getLocalBookings() {
   const saved = localStorage.getItem("confe_bookings");
   if (saved) {
     try {
-      return JSON.parse(saved).map((b) => normalizeBooking(b));
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.map((b) => normalizeBooking(b));
+      }
     } catch {
-      return INITIAL_BOOKINGS.map((b) => normalizeBooking(b));
+      return [];
     }
   }
-  const normalized = INITIAL_BOOKINGS.map((b) => normalizeBooking(b));
-  localStorage.setItem("confe_bookings", JSON.stringify(normalized));
-  return normalized;
+  return [];
 }
 
 function saveLocalBookings(bookings) {
-  localStorage.setItem("confe_bookings", JSON.stringify(bookings.map((b) => normalizeBooking(b))));
+  localStorage.setItem("confe_bookings", JSON.stringify((bookings || []).map((b) => normalizeBooking(b))));
 }
 
 export async function getBookings() {
   try {
     const response = await api.get("/bookings");
-    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+    if (response.data && Array.isArray(response.data)) {
       const normalized = response.data.map((b) => normalizeBooking(b));
       saveLocalBookings(normalized);
       return normalized;
