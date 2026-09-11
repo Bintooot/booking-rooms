@@ -2,8 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { hasPermission } from "../../utils/permissions.js";
 import { getRooms, updateRoom, deleteRoom as apiDeleteRoom } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 import {
   Search,
   Plus,
@@ -36,6 +40,7 @@ const AVAILABLE_AMENITIES = [
 
 function RoomManagement() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -123,6 +128,20 @@ function RoomManagement() {
       setRooms((prev) =>
         prev.map((r) => (r.id === room.id ? { ...r, status: nextStatus, is_active: nextStatus !== "Maintenance" } : r))
       );
+
+      logAuditEvent({
+        action: "Room Status Changed",
+        actor: user?.name || "Administrator",
+        target: `${room.name} (${nextStatus})`,
+        type: "room",
+      });
+
+      addNotification({
+        title: `Room Status: ${room.name}`,
+        message: `"${room.name}" was marked as ${nextStatus}.`,
+        type: "maintenance",
+      });
+
       showToast(`"${room.name}" marked as ${nextStatus}`);
     } catch {
       showToast("Failed to update status", "error");
@@ -139,6 +158,20 @@ function RoomManagement() {
     try {
       await apiDeleteRoom(room.id);
       setRooms((prev) => prev.filter((r) => r.id !== room.id));
+
+      logAuditEvent({
+        action: "Room Deleted",
+        actor: user?.name || "Administrator",
+        target: room.name,
+        type: "room",
+      });
+
+      addNotification({
+        title: "Room Removed",
+        message: `Room "${room.name}" was deleted from the facility list.`,
+        type: "maintenance",
+      });
+
       showToast(`Room "${room.name}" deleted successfully`);
     } catch {
       showToast("Failed to delete room", "error");
@@ -188,6 +221,14 @@ function RoomManagement() {
       setRooms((prev) =>
         prev.map((r) => (r.id === editingRoom.id ? { ...r, ...updated } : r))
       );
+
+      logAuditEvent({
+        action: "Room Updated",
+        actor: user?.name || "Administrator",
+        target: editFormData.name,
+        type: "room",
+      });
+
       showToast(`Updated "${editFormData.name}" successfully!`);
       setEditingRoom(null);
     } catch {
@@ -225,13 +266,15 @@ function RoomManagement() {
           </p>
         </div>
 
-        <Link
-          to="/room-creation"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
-        >
-          <Plus size={16} />
-          Create Room
-        </Link>
+        {hasPermission(user?.role, "create_room") && (
+          <Link
+            to="/room-creation"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+          >
+            <Plus size={16} />
+            Create Room
+          </Link>
+        )}
       </div>
 
       {/* Summary Counters */}

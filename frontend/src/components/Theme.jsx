@@ -6,7 +6,7 @@ function Theme() {
 
   return (
     <div
-      className={`absolute hover:scale-110 duration-200 bottom-6 right-6 w-12 h-12 cursor-pointer flex items-center justify-center ${
+      className={`absolute hover:scale-110 z-10 duration-200 bottom-6 right-6 w-12 h-12 cursor-pointer flex items-center justify-center ${
         theme ? "bg-blue-900" : "bg-blue-300"
       } rounded-full ${theme ? "text-white" : "text-blue-900"}`}
       onClick={toggleTheme}

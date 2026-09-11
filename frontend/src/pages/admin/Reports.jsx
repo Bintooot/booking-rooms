@@ -1,9 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { getRooms } from "../../api/rooms.js";
 import { getBookings } from "../../api/bookings.js";
 import { useToast } from "../../components/Toast.jsx";
+import {
+  filterBookingsByRange,
+  calculateDurationHours,
+  computeDemandMetrics,
+} from "../../utils/analytics.js";
 import {
   Download,
   Calendar,
@@ -29,40 +34,76 @@ function Reports() {
     loadData();
   }, []);
 
-  const totalBookings = bookings.length;
-  const confirmedBookings = bookings.filter((b) => b.status === "confirmed").length;
-  const cancelledBookings = bookings.filter((b) => b.status === "cancelled").length;
+  // Filter bookings strictly by selected calendar window
+  const periodBookings = useMemo(() => {
+    return filterBookingsByRange(bookings, timeRange);
+  }, [bookings, timeRange]);
+
+  const totalBookings = periodBookings.length;
+  const confirmedBookings = periodBookings.filter((b) => b.status === "confirmed").length;
+  const cancelledBookings = periodBookings.filter((b) => b.status === "cancelled").length;
   const cancellationRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
 
-  const roomStats = rooms.map((room) => {
-    const roomBookings = bookings.filter((b) => b.room_id === room.id || b.room_name === room.name);
-    const totalHours = roomBookings.length * 1.5;
-    return {
-      name: room.name,
-      capacity: room.capacity,
-      location: room.location,
-      bookingCount: roomBookings.length,
-      totalHours,
-      utilizationScore: Math.min(100, Math.round((roomBookings.length / (totalBookings || 1)) * 100 * 1.5)),
-    };
-  });
+  // Real calculated duration hours
+  const totalHoursBooked = useMemo(() => {
+    const total = periodBookings.reduce((sum, b) => {
+      return sum + calculateDurationHours(b.start_time, b.end_time);
+    }, 0);
+    return Number(total.toFixed(1));
+  }, [periodBookings]);
+
+  const avgMeetingHours = totalBookings > 0 ? (totalHoursBooked / totalBookings).toFixed(1) : "0";
+
+  // Dynamic peak demand metrics based on actual hours and days
+  const demandMetrics = useMemo(() => {
+    return computeDemandMetrics(periodBookings);
+  }, [periodBookings]);
+
+  const roomStats = useMemo(() => {
+    return rooms.map((room) => {
+      const roomBookings = periodBookings.filter(
+        (b) => String(b.room_id) === String(room.id) || b.room_name === room.name
+      );
+
+      const totalHours = roomBookings.reduce((sum, b) => {
+        return sum + calculateDurationHours(b.start_time, b.end_time);
+      }, 0);
+
+      const utilizationScore = totalBookings > 0
+        ? Math.min(100, Math.round((roomBookings.length / totalBookings) * 100))
+        : 0;
+
+      return {
+        name: room.name,
+        capacity: room.capacity,
+        location: room.location,
+        bookingCount: roomBookings.length,
+        totalHours: Number(totalHours.toFixed(1)),
+        utilizationScore,
+      };
+    });
+  }, [rooms, periodBookings, totalBookings]);
 
   const exportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Room Name,Capacity,Location,Bookings Count,Estimated Hours\n";
+    csvContent += `Reporting Period: ${timeRange}\n`;
+    csvContent += "Room Name,Capacity,Location,Bookings Count,Total Hours,Demand Score\n";
 
     roomStats.forEach((r) => {
-      csvContent += `"${r.name}",${r.capacity},"${r.location}",${r.bookingCount},${r.totalHours}\n`;
+      csvContent += `"${r.name}",${r.capacity},"${r.location}",${r.bookingCount},${r.totalHours},${r.utilizationScore}%\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `confe_room_reports_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `confe_room_reports_${timeRange.toLowerCase().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast("Report exported as CSV!");
+    showToast(`Exported ${timeRange} report as CSV!`);
   };
 
   return (
@@ -125,14 +166,14 @@ function Reports() {
           },
           {
             label: "Total Hours Booked",
-            value: `${totalBookings * 1.5}h`,
-            sub: "Average meeting: 1.5h",
+            value: `${totalHoursBooked}h`,
+            sub: `Average meeting: ${avgMeetingHours}h`,
             icon: <Clock size={18} />,
           },
           {
             label: "Peak Demand Time",
-            value: "10:00 AM",
-            sub: "Tuesday - Thursday",
+            value: demandMetrics.peakHour,
+            sub: demandMetrics.peakDays,
             icon: <TrendingUp size={18} />,
           },
           {

@@ -39,16 +39,65 @@ function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/room-management" element={<RoomManagement />} />
-        <Route path="/room-creation" element={<RoomCreation />} />
+        <Route
+          path="/room-creation"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <RoomCreation />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/booking-management" element={<BookingManagement />} />
         <Route path="/schedule" element={<Schedule />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/user-creation" element={<UserCreation />} />
-        <Route path="/reports" element={<Reports />} />
+        <Route
+          path="/user-management"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-creation"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <UserCreation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator", "Manager"]}>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/audit-logs" element={<AuditLogs />} />
-        <Route path="/roles" element={<RolesPermissions />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/audit-logs"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <AuditLogs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/roles"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <RolesPermissions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["Administrator"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/unavailable" element={<Unavailable />} />
       </Route>
 

@@ -1,70 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
-import { Search } from "lucide-react";
-
-const INITIAL_LOGS = [
-  {
-    id: 1,
-    action: "Room Created",
-    actor: "Administrator",
-    target: "Innovation Hub",
-    timestamp: "Today, 10:45 AM",
-    ip: "192.168.1.104",
-    type: "room",
-  },
-  {
-    id: 2,
-    action: "Booking Confirmed",
-    actor: "Ana Cruz",
-    target: "The Boardroom",
-    timestamp: "Today, 09:15 AM",
-    ip: "192.168.1.82",
-    type: "booking",
-  },
-  {
-    id: 3,
-    action: "Room Status Changed",
-    actor: "Administrator",
-    target: "Meeting Room B (Maintenance)",
-    timestamp: "Yesterday, 04:30 PM",
-    ip: "192.168.1.104",
-    type: "room",
-  },
-  {
-    id: 4,
-    action: "User Registered",
-    actor: "Administrator",
-    target: "Carlos Mendoza (Employee)",
-    timestamp: "Yesterday, 02:00 PM",
-    ip: "192.168.1.104",
-    type: "user",
-  },
-  {
-    id: 5,
-    action: "Booking Cancelled",
-    actor: "Mark Reyes",
-    target: "Huddle Room 1",
-    timestamp: "Sep 9, 2026, 11:20 AM",
-    ip: "192.168.1.45",
-    type: "booking",
-  },
-  {
-    id: 6,
-    action: "System Login",
-    actor: "Jane Doe",
-    target: "Web Portal Auth",
-    timestamp: "Sep 9, 2026, 08:30 AM",
-    ip: "192.168.1.33",
-    type: "auth",
-  },
-];
+import { useToast } from "../../components/Toast.jsx";
+import { Search, Download, Trash2 } from "lucide-react";
+import {
+  getAuditLogs,
+  clearAuditLogs,
+  exportAuditLogsCSV,
+  AUDIT_UPDATED_EVENT,
+} from "../../services/auditService.js";
 
 function AuditLogs() {
   const { theme } = useTheme();
-  const [logs] = useState(INITIAL_LOGS);
+  const { showToast } = useToast();
+  const [logs, setLogs] = useState(() => getAuditLogs());
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setLogs(getAuditLogs());
+    };
+    window.addEventListener(AUDIT_UPDATED_EVENT, handleUpdate);
+    return () => window.removeEventListener(AUDIT_UPDATED_EVENT, handleUpdate);
+  }, []);
+
+  const handleClear = () => {
+    if (window.confirm("Are you sure you want to clear all audit logs? This cannot be undone.")) {
+      clearAuditLogs();
+      setLogs([]);
+      showToast("Audit logs cleared successfully.", "info");
+    }
+  };
+
+  const handleExport = () => {
+    exportAuditLogsCSV();
+    showToast("Audit trail exported as CSV.");
+  };
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
@@ -97,6 +69,34 @@ function AuditLogs() {
           >
             Chronological record of administrative actions and security events.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={logs.length === 0}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition ${
+              theme
+                ? "bg-slate-800 border-slate-700 text-gray-300 hover:bg-slate-700"
+                : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+            } disabled:opacity-40 cursor-pointer`}
+          >
+            <Download size={14} /> Export CSV
+          </button>
+
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={logs.length === 0}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold text-red-500 transition ${
+              theme
+                ? "bg-slate-800 border-slate-700 hover:bg-red-500/10"
+                : "bg-white border-gray-200 hover:bg-red-50"
+            } disabled:opacity-40 cursor-pointer`}
+          >
+            <Trash2 size={14} /> Clear Logs
+          </button>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ function AuditLogs() {
               {filteredLogs.map((log) => (
                 <tr key={log.id} className="transition hover:bg-blue-500/5">
                   <td className="py-4 px-5 text-gray-400 font-mono text-[11px]">
-                    {log.timestamp}
+                    {log.displayTime || log.timestamp}
                   </td>
                   <td className="py-4 px-4 font-semibold">
                     <span

@@ -7,14 +7,18 @@ import {
   updateUserController,
   deleteUserController,
 } from "../controller/users.controller.js";
+import { verifyToken, requireRoles } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", getUsersController);
-router.get("/:id", getUserbyIdController);
-router.post("/register", registerUserController);
+// Public auth routes
 router.post("/login", loginUserController);
-router.patch("/:id", updateUserController);
-router.delete("/:id", deleteUserController);
+
+// Protected routes
+router.get("/", verifyToken, getUsersController);
+router.get("/:id", verifyToken, getUserbyIdController);
+router.post("/register", verifyToken, requireRoles("Administrator"), registerUserController);
+router.patch("/:id", verifyToken, requireRoles("Administrator"), updateUserController);
+router.delete("/:id", verifyToken, requireRoles("Administrator"), deleteUserController);
 
 export default router;

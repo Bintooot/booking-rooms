@@ -3,31 +3,15 @@ import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useToast } from "../../components/Toast.jsx";
 import { Save, Building, Clock, Shield } from "lucide-react";
+import { getSettings, saveSettings } from "../../services/settingsService.js";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 
 function Settings() {
   const { theme } = useTheme();
   const { showToast } = useToast();
 
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem("confe_settings");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // use default
-      }
-    }
-    return {
-      orgName: "HIJO Resources Corporation",
-      buildingName: "Headquarters Building A",
-      maxBookingDays: "30",
-      maxDurationHours: "4",
-      bufferMinutes: "15",
-      autoReleaseMinutes: "15",
-      emailReminders: true,
-      conflictStrict: true,
-    };
-  });
+  const [settings, setSettings] = useState(() => getSettings());
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,8 +23,22 @@ function Settings() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("confe_settings", JSON.stringify(settings));
-    showToast("Settings updated successfully!");
+    saveSettings(settings);
+
+    logAuditEvent({
+      action: "Settings Updated",
+      actor: "Administrator",
+      target: "System Policy Configuration",
+      type: "settings",
+    });
+
+    addNotification({
+      title: "System Configuration Updated",
+      message: `Updated booking policy: Max duration ${settings.maxDurationHours}h, advance window ${settings.maxBookingDays} days.`,
+      type: "maintenance",
+    });
+
+    showToast("Settings updated and applied system-wide!");
   };
 
   const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
