@@ -125,7 +125,16 @@ function Schedule() {
 
   const getBookingsForDate = (date) => {
     const key = formatDateKey(date);
-    return filteredBookings.filter((b) => b.date === key);
+    return filteredBookings.filter((b) => {
+      if (b.date === key) return true;
+      if (typeof b.start_time === "string" && b.start_time.includes("T")) {
+        return b.start_time.split("T")[0] === key;
+      }
+      if (typeof b.raw_start_time === "string" && b.raw_start_time.includes("T")) {
+        return b.raw_start_time.split("T")[0] === key;
+      }
+      return false;
+    });
   };
 
   const goToPreviousMonth = () => setCurrentDate(new Date(year, month - 1, 1));
@@ -186,13 +195,17 @@ function Schedule() {
 
     const existingConflict = bookings.find((b) => {
       if (b.status === "cancelled") return false;
-      if (b.date !== newBookingData.date) return false;
+      const bDate = b.date || (typeof b.start_time === "string" && b.start_time.includes("T") ? b.start_time.split("T")[0] : null);
+      if (bDate !== newBookingData.date) return false;
       if (String(b.room_id) !== String(newBookingData.room_id)) return false;
 
+      const bStart = typeof b.start_time === "string" && b.start_time.includes("T") ? b.start_time.split("T")[1].slice(0, 5) : b.start_time;
+      const bEnd = typeof b.end_time === "string" && b.end_time.includes("T") ? b.end_time.split("T")[1].slice(0, 5) : b.end_time;
+
       return (
-        (newBookingData.start_time >= b.start_time && newBookingData.start_time < b.end_time) ||
-        (newBookingData.end_time > b.start_time && newBookingData.end_time <= b.end_time) ||
-        (newBookingData.start_time <= b.start_time && newBookingData.end_time >= b.end_time)
+        (newBookingData.start_time >= bStart && newBookingData.start_time < bEnd) ||
+        (newBookingData.end_time > bStart && newBookingData.end_time <= bEnd) ||
+        (newBookingData.start_time <= bStart && newBookingData.end_time >= bEnd)
       );
     });
 

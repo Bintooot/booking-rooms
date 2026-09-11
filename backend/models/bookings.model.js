@@ -1,5 +1,39 @@
 import pool from "../config/db.js";
 
+function formatBooking(row) {
+  if (!row) return null;
+  const start = new Date(row.start_time);
+  const end = new Date(row.end_time);
+
+  // Extract YYYY-MM-DD
+  const y = start.getFullYear();
+  const m = String(start.getMonth() + 1).padStart(2, "0");
+  const d = String(start.getDate()).padStart(2, "0");
+  const dateStr = `${y}-${m}-${d}`;
+
+  // Extract HH:MM
+  const startHour = String(start.getHours()).padStart(2, "0");
+  const startMin = String(start.getMinutes()).padStart(2, "0");
+  const startTimeStr = `${startHour}:${startMin}`;
+
+  const endHour = String(end.getHours()).padStart(2, "0");
+  const endMin = String(end.getMinutes()).padStart(2, "0");
+  const endTimeStr = `${endHour}:${endMin}`;
+
+  const colors = ["blue", "purple", "green", "orange", "pink"];
+  const color = colors[Math.abs(Number(row.room_id || row.id || 0)) % colors.length];
+
+  return {
+    ...row,
+    date: dateStr,
+    start_time: startTimeStr,
+    end_time: endTimeStr,
+    raw_start_time: row.start_time,
+    raw_end_time: row.end_time,
+    color,
+  };
+}
+
 export async function getAllBookings() {
   const result = await pool.query(`
     SELECT b.*, r.name AS room_name
@@ -7,7 +41,7 @@ export async function getAllBookings() {
     LEFT JOIN rooms r ON b.room_id = r.id
     ORDER BY b.start_time DESC
   `);
-  return result.rows;
+  return result.rows.map(formatBooking);
 }
 
 export async function getBookingById(id) {
@@ -18,7 +52,7 @@ export async function getBookingById(id) {
      WHERE b.id = $1`,
     [id]
   );
-  return result.rows[0] || null;
+  return result.rows[0] ? formatBooking(result.rows[0]) : null;
 }
 
 export async function createBooking({
@@ -52,7 +86,7 @@ export async function createBooking({
     const roomRes = await pool.query("SELECT name FROM rooms WHERE id = $1", [newBooking.room_id]);
     newBooking.room_name = roomRes.rows[0]?.name || "Conference Room";
   }
-  return newBooking;
+  return formatBooking(newBooking);
 }
 
 export async function updateBooking(id, fields) {
@@ -91,7 +125,7 @@ export async function updateBooking(id, fields) {
     const roomRes = await pool.query("SELECT name FROM rooms WHERE id = $1", [updated.room_id]);
     updated.room_name = roomRes.rows[0]?.name || "Conference Room";
   }
-  return updated;
+  return formatBooking(updated);
 }
 
 export const updateBookingStatus = updateBooking;
