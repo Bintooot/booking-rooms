@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { canAccessRoute } from "../../utils/permissions.js";
 import { getRooms } from "../../api/rooms.js";
 import { getBookings } from "../../api/bookings.js";
 import {
@@ -17,6 +19,7 @@ import {
 
 function Dashboard() {
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -108,17 +111,19 @@ function Dashboard() {
           <span>New Reservation</span>
         </Link>
 
-        <Link
-          to="/room-creation"
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
-            theme
-              ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
-              : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
-          }`}
-        >
-          <PlusCircle size={15} />
-          <span>Create Room</span>
-        </Link>
+        {canAccessRoute(user?.role, "/room-creation") && (
+          <Link
+            to="/room-creation"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
+              theme
+                ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
+                : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+            }`}
+          >
+            <PlusCircle size={15} />
+            <span>Create Room</span>
+          </Link>
+        )}
 
         <Link
           to="/booking-management"

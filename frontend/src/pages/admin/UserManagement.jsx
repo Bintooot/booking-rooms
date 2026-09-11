@@ -2,8 +2,11 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { getUsers, updateUser, deleteUser as apiDeleteUser } from "../../api/users.js";
 import { useToast } from "../../components/Toast.jsx";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 import {
   Search,
   UserPlus,
@@ -19,6 +22,7 @@ import {
 
 function UserManagement() {
   const { theme } = useTheme();
+  const { user: currentUser } = useAuth();
   const { showToast } = useToast();
 
   const [users, setUsers] = useState([]);
@@ -83,6 +87,14 @@ function UserManagement() {
       setUsers((prev) =>
         prev.map((u) => (u.id === editingUser.id ? { ...u, ...updated } : u))
       );
+
+      logAuditEvent({
+        action: "User Updated",
+        actor: currentUser?.name || "Administrator",
+        target: editData.name,
+        type: "user",
+      });
+
       showToast(`User "${editData.name}" updated successfully`);
       setEditingUser(null);
     } catch {
@@ -97,6 +109,20 @@ function UserManagement() {
     try {
       await apiDeleteUser(user.id);
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+      logAuditEvent({
+        action: "User Deleted",
+        actor: currentUser?.name || "Administrator",
+        target: user.name,
+        type: "user",
+      });
+
+      addNotification({
+        title: "User Account Removed",
+        message: `Account for "${user.name}" was deleted.`,
+        type: "user",
+      });
+
       showToast(`User "${user.name}" removed`);
     } catch {
       showToast("Failed to delete user", "error");

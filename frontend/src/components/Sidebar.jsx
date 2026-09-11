@@ -15,14 +15,31 @@ import {
   History,
   LogOut,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { canAccessRoute } from "../utils/permissions.js";
+import { getUnreadCount, NOTIFICATIONS_UPDATED_EVENT } from "../services/notificationService.js";
 
 function Sidebar({ theme }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [permVersion, setPermVersion] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(() => getUnreadCount());
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handlePermUpdate = () => setPermVersion((v) => v + 1);
+    const handleNotifUpdate = () => setUnreadCount(getUnreadCount());
+
+    window.addEventListener("confe_permissions_updated", handlePermUpdate);
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotifUpdate);
+
+    return () => {
+      window.removeEventListener("confe_permissions_updated", handlePermUpdate);
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotifUpdate);
+    };
+  }, []);
 
   function toggleShrink() {
     setIsCollapsed((prev) => !prev);
@@ -126,6 +143,15 @@ function Sidebar({ theme }) {
     },
   ];
 
+  const filteredSections = useMemo(() => {
+    return navSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => canAccessRoute(user?.role, item.path)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [user?.role, permVersion]);
+
   const userInitials = user?.name
     ? user.name
         .split(" ")
@@ -187,7 +213,7 @@ function Sidebar({ theme }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto scrollbar-hide pr-1">
         <div className="flex flex-col gap-5">
-          {navSections.map((section) => (
+          {filteredSections.map((section) => (
             <div key={section.title}>
               {!isCollapsed && (
                 <p
@@ -229,16 +255,31 @@ function Sidebar({ theme }) {
                         )}
 
                         <span
-                          className={`shrink-0 transition-transform duration-200 ${
+                          className={`shrink-0 transition-transform duration-200 relative ${
                             !isActive ? "group-hover:scale-110" : ""
                           }`}
                         >
                           {item.icon}
+                          {isCollapsed && item.path === "/notifications" && unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full ring-2 ring-slate-800" />
+                          )}
                         </span>
 
                         {!isCollapsed && (
-                          <span className="text-xs font-medium truncate">
+                          <span className="text-xs font-medium truncate flex-1">
                             {item.label}
+                          </span>
+                        )}
+
+                        {!isCollapsed && item.path === "/notifications" && unreadCount > 0 && (
+                          <span
+                            className={`ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                              isActive
+                                ? "bg-white text-blue-600"
+                                : "bg-blue-600 text-white"
+                            }`}
+                          >
+                            {unreadCount}
                           </span>
                         )}
                       </Link>

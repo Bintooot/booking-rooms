@@ -11,11 +11,15 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { createUser, getUsers } from "../../api/users.js";
 import { useToast } from "../../components/Toast.jsx";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 
 function UserCreation() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [showForm, setShowForm] = useState(false);
@@ -68,6 +72,19 @@ function UserCreation() {
       setLoading(true);
 
       await createUser(formData);
+
+      logAuditEvent({
+        action: "User Registered",
+        actor: user?.name || "Administrator",
+        target: `${formData.name} (${formData.role || "Employee"})`,
+        type: "user",
+      });
+
+      addNotification({
+        title: "New Team Member Added",
+        message: `${formData.name} was registered as ${formData.role || "Employee"}.`,
+        type: "user",
+      });
 
       await loadUsers();
       setShowForm(false);

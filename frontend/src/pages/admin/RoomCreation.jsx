@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { getRooms, createRoom } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 import {
   Plus,
   Users,
@@ -28,6 +31,7 @@ const AVAILABLE_AMENITIES = [
 
 function RoomCreation() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [rooms, setRooms] = useState([]);
@@ -95,6 +99,20 @@ function RoomCreation() {
       });
 
       setRooms((prev) => [newRoom, ...prev]);
+
+      logAuditEvent({
+        action: "Room Created",
+        actor: user?.name || "Administrator",
+        target: formData.roomName,
+        type: "room",
+      });
+
+      addNotification({
+        title: "New Room Provisioned",
+        message: `"${formData.roomName}" is now active and ready for bookings.`,
+        type: "maintenance",
+      });
+
       showToast(`Room "${formData.roomName}" created successfully!`);
       setShowForm(false);
       setFormData({

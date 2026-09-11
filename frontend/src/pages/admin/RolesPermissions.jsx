@@ -2,32 +2,32 @@ import { useState } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useToast } from "../../components/Toast.jsx";
-import { Save } from "lucide-react";
-
-const INITIAL_PERMISSIONS = [
-  { id: "book_room", name: "Reserve Conference Room", admin: true, manager: true, employee: true },
-  { id: "cancel_own", name: "Cancel Own Bookings", admin: true, manager: true, employee: true },
-  { id: "cancel_any", name: "Cancel / Override Any Booking", admin: true, manager: true, employee: false },
-  { id: "create_room", name: "Create & Provision Rooms", admin: true, manager: false, employee: false },
-  { id: "edit_room", name: "Edit Room & Change Status", admin: true, manager: true, employee: false },
-  { id: "delete_room", name: "Delete Rooms", admin: true, manager: false, employee: false },
-  { id: "manage_users", name: "Create & Manage Users", admin: true, manager: false, employee: false },
-  { id: "view_reports", name: "Access Usage Reports & Export", admin: true, manager: true, employee: false },
-];
+import { Save, RotateCcw } from "lucide-react";
+import { getPermissions, savePermissions, resetPermissions } from "../../utils/permissions.js";
 
 function RolesPermissions() {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const [permissions, setPermissions] = useState(INITIAL_PERMISSIONS);
+  const [permissions, setPermissions] = useState(() => getPermissions());
 
   const toggle = (id, role) => {
+    // Admin permissions remain true to prevent accidental lockout
+    if (role === "admin") return;
+
     setPermissions((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [role]: !item[role] } : item))
     );
   };
 
   const saveSettings = () => {
+    savePermissions(permissions);
     showToast("Roles and access permissions saved successfully!");
+  };
+
+  const handleReset = () => {
+    const defaults = resetPermissions();
+    setPermissions(defaults);
+    showToast("Reset all permissions to system defaults.", "info");
   };
 
   return (
@@ -52,13 +52,26 @@ function RolesPermissions() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={saveSettings}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
-        >
-          <Save size={15} /> Save Changes
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleReset}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${
+              theme
+                ? "border-slate-700 bg-slate-800 text-gray-300 hover:bg-slate-700"
+                : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            <RotateCcw size={14} /> Reset Defaults
+          </button>
+          <button
+            type="button"
+            onClick={saveSettings}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+          >
+            <Save size={15} /> Save Changes
+          </button>
+        </div>
       </div>
 
       <section
@@ -94,9 +107,10 @@ function RolesPermissions() {
                   <td className="py-4 px-6 text-center">
                     <input
                       type="checkbox"
-                      checked={perm.admin}
-                      onChange={() => toggle(perm.id, "admin")}
-                      className="w-4 h-4 rounded text-blue-600 cursor-pointer"
+                      checked={true}
+                      disabled
+                      title="Administrator permissions are always granted"
+                      className="w-4 h-4 rounded text-blue-600 opacity-60 cursor-not-allowed"
                     />
                   </td>
 

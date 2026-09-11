@@ -20,10 +20,14 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("admin@company.com");
+  const [email, setEmail] = useState(() => {
+    return localStorage.getItem("confe_remembered_email") || "admin@company.com";
+  });
   const [password, setPassword] = useState("password123");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem("confe_remembered_email") !== null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +40,15 @@ function Login() {
       if (!email || !password) {
         throw new Error("Please enter both email and password.");
       }
-      await login(email, password);
+
+      await login(email, password, rememberMe);
+
+      if (rememberMe) {
+        localStorage.setItem("confe_remembered_email", email);
+      } else {
+        localStorage.removeItem("confe_remembered_email");
+      }
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Failed to sign in. Please try again.");
@@ -48,7 +60,7 @@ function Login() {
   const handleQuickLogin = (roleEmail) => {
     setEmail(roleEmail);
     setPassword("password123");
-    login(roleEmail, "password123");
+    login(roleEmail, "password123", rememberMe);
     navigate("/dashboard");
   };
 

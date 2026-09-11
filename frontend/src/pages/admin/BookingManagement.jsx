@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { hasPermission } from "../../utils/permissions.js";
 import {
   getBookings,
   createBooking,
@@ -9,6 +11,9 @@ import {
 } from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
+import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 import {
   Search,
   Plus,
@@ -24,6 +29,7 @@ import {
 
 function BookingManagement() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [bookings, setBookings] = useState([]);
@@ -95,6 +101,20 @@ function BookingManagement() {
       setBookings((prev) =>
         prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))
       );
+
+      logAuditEvent({
+        action: "Booking Cancelled",
+        actor: user?.name || "User",
+        target: title,
+        type: "booking",
+      });
+
+      addNotification({
+        title: "Reservation Cancelled",
+        message: `Booking "${title}" was cancelled by ${user?.name || "User"}.`,
+        type: "booking",
+      });
+
       showToast(`Booking "${title}" cancelled`);
     } catch {
       showToast("Failed to cancel booking", "error");
@@ -107,6 +127,14 @@ function BookingManagement() {
       setBookings((prev) =>
         prev.map((b) => (b.id === id ? { ...b, status: "confirmed" } : b))
       );
+
+      logAuditEvent({
+        action: "Booking Confirmed",
+        actor: user?.name || "User",
+        target: title,
+        type: "booking",
+      });
+
       showToast(`Booking "${title}" marked as confirmed`);
     } catch {
       showToast("Failed to confirm booking", "error");
@@ -120,6 +148,14 @@ function BookingManagement() {
     try {
       await deleteBooking(id);
       setBookings((prev) => prev.filter((b) => b.id !== id));
+
+      logAuditEvent({
+        action: "Booking Deleted",
+        actor: user?.name || "Administrator",
+        target: title,
+        type: "booking",
+      });
+
       showToast(`Booking removed`);
     } catch {
       showToast("Failed to delete booking", "error");
@@ -131,6 +167,17 @@ function BookingManagement() {
     const selectedRoom = rooms.find((r) => String(r.id) === String(formData.room_id));
     const roomName = selectedRoom ? selectedRoom.name : "Conference Room";
 
+    // Standard policy validation (advance window, max duration, conflict)
+    const validation = validateBookingAgainstPolicy(formData, bookings);
+    if (!validation.isValid) {
+      showToast(validation.error, "error");
+      return;
+    }
+    if (validation.isWarning) {
+      const proceed = window.confirm(`${validation.error}\nDo you want to proceed anyway?`);
+      if (!proceed) return;
+    }
+
     try {
       const newBooking = await createBooking({
         ...formData,
@@ -138,6 +185,20 @@ function BookingManagement() {
         status: "confirmed",
       });
       setBookings((prev) => [newBooking, ...prev]);
+
+      logAuditEvent({
+        action: "Booking Created",
+        actor: user?.name || formData.booker_name,
+        target: `${formData.title} (${roomName})`,
+        type: "booking",
+      });
+
+      addNotification({
+        title: "New Reservation Confirmed",
+        message: `"${formData.title}" reserved in ${roomName} for ${formData.date} (${formData.start_time}-${formData.end_time}).`,
+        type: "booking",
+      });
+
       showToast(`Reservation created for ${formData.title}`);
       setShowModal(false);
       setFormData({
@@ -413,36 +474,59 @@ function BookingManagement() {
                     </td>
 
                     <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {booking.status === "confirmed" ? (
-                          <button
-                            type="button"
-                            onClick={() => handleCancel(booking.id, booking.title)}
-                            title="Cancel Booking"
-                            className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition"
-                          >
-                            <Ban size={15} />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleConfirm(booking.id, booking.title)}
-                            title="Restore / Confirm Booking"
-                            className="p-1.5 rounded-lg text-green-500 hover:bg-green-500/10 transition"
-                          >
-                            <Check size={15} />
-                          </button>
-                        )}
+                      {(() => {
+                        const isOwnBooking =
+                          booking.booker_name?.toLowerCase() === user?.name?.toLowerCase();
+                        const canCancel =
+                          hasPermission(user?.role, "cancel_any") ||
+                          (hasPermission(user?.role, "cancel_own") && isOwnBooking);
+                        const canDelete = hasPermission(user?.role, "cancel_any");
 
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(booking.id, booking.title)}
-                          title="Delete Record"
-                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                        if (!canCancel && !canDelete) {
+                          return (
+                            <span className="text-[11px] text-gray-400 italic px-2">
+                              View only
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <div className="flex items-center justify-end gap-1.5">
+                            {canCancel && (
+                              booking.status === "confirmed" ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancel(booking.id, booking.title)}
+                                  title="Cancel Booking"
+                                  className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition"
+                                >
+                                  <Ban size={15} />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirm(booking.id, booking.title)}
+                                  title="Restore / Confirm Booking"
+                                  className="p-1.5 rounded-lg text-green-500 hover:bg-green-500/10 transition"
+                                >
+                                  <Check size={15} />
+                                </button>
+                              )
+                            )}
+
+                            {canDelete && (
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(booking.id, booking.title)}
+                                title="Delete Record"
+                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}

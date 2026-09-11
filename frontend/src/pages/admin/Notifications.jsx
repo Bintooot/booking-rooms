@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useToast } from "../../components/Toast.jsx";
@@ -10,62 +10,44 @@ import {
   Trash2,
   Check,
 } from "lucide-react";
-
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 1,
-    title: "Upcoming Meeting Reminder",
-    message: "Quarterly Strategy Review starts in 15 minutes at Conference Room A.",
-    time: "10 mins ago",
-    read: false,
-    type: "booking",
-  },
-  {
-    id: 2,
-    title: "Room Under Maintenance",
-    message: "Meeting Room B has been temporarily set to Maintenance for AV repairs.",
-    time: "1 hour ago",
-    read: false,
-    type: "maintenance",
-  },
-  {
-    id: 3,
-    title: "New Team Member",
-    message: "Carlos Mendoza joined as Employee and has booking permissions.",
-    time: "3 hours ago",
-    read: true,
-    type: "user",
-  },
-  {
-    id: 4,
-    title: "Booking Confirmed",
-    message: "The Boardroom has been successfully reserved by Ana Cruz.",
-    time: "Yesterday",
-    read: true,
-    type: "booking",
-  },
-];
+import {
+  getNotifications,
+  markAllAsRead as apiMarkAllRead,
+  clearAllNotifications,
+  toggleNotificationRead,
+  NOTIFICATIONS_UPDATED_EVENT,
+} from "../../services/notificationService.js";
 
 function Notifications() {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(() => getNotifications());
   const [filter, setFilter] = useState("all");
 
+  useEffect(() => {
+    const handleUpdate = () => {
+      setNotifications(getNotifications());
+    };
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdate);
+    return () => window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdate);
+  }, []);
+
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    apiMarkAllRead();
+    setNotifications(getNotifications());
     showToast("All notifications marked as read");
   };
 
   const clearAll = () => {
+    if (notifications.length === 0) return;
+    clearAllNotifications();
     setNotifications([]);
     showToast("All notifications cleared");
   };
 
   const toggleRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
+    toggleNotificationRead(id);
+    setNotifications(getNotifications());
   };
 
   const filtered = notifications.filter((n) => {

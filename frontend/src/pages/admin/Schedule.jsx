@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { getBookings, createBooking, updateBookingStatus, deleteBooking } from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
+import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
+import { logAuditEvent } from "../../services/auditService.js";
+import { addNotification } from "../../services/notificationService.js";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,6 +25,7 @@ import {
 
 function Schedule() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -193,26 +198,15 @@ function Schedule() {
     const selectedRoom = rooms.find((r) => String(r.id) === String(newBookingData.room_id));
     const roomName = selectedRoom ? selectedRoom.name : "Conference Room";
 
-    const existingConflict = bookings.find((b) => {
-      if (b.status === "cancelled") return false;
-      const bDate = b.date || (typeof b.start_time === "string" && b.start_time.includes("T") ? b.start_time.split("T")[0] : null);
-      if (bDate !== newBookingData.date) return false;
-      if (String(b.room_id) !== String(newBookingData.room_id)) return false;
+    const validation = validateBookingAgainstPolicy(newBookingData, bookings);
+    if (!validation.isValid) {
+      setConflictWarning(validation.error);
+      showToast(validation.error, "error");
+      return;
+    }
 
-      const bStart = typeof b.start_time === "string" && b.start_time.includes("T") ? b.start_time.split("T")[1].slice(0, 5) : b.start_time;
-      const bEnd = typeof b.end_time === "string" && b.end_time.includes("T") ? b.end_time.split("T")[1].slice(0, 5) : b.end_time;
-
-      return (
-        (newBookingData.start_time >= bStart && newBookingData.start_time < bEnd) ||
-        (newBookingData.end_time > bStart && newBookingData.end_time <= bEnd) ||
-        (newBookingData.start_time <= bStart && newBookingData.end_time >= bEnd)
-      );
-    });
-
-    if (existingConflict) {
-      const proceed = window.confirm(
-        `Warning: Conflict with existing booking "${existingConflict.title}" (${existingConflict.start_time}-${existingConflict.end_time}). Proceed anyway?`
-      );
+    if (validation.isWarning) {
+      const proceed = window.confirm(`${validation.error}\nDo you want to proceed anyway?`);
       if (!proceed) return;
     }
 
@@ -232,6 +226,20 @@ function Schedule() {
       });
 
       setBookings((prev) => [created, ...prev]);
+
+      logAuditEvent({
+        action: "Booking Created",
+        actor: user?.name || newBookingData.booker_name,
+        target: `${newBookingData.title} (${roomName})`,
+        type: "booking",
+      });
+
+      addNotification({
+        title: "New Reservation Confirmed",
+        message: `"${newBookingData.title}" reserved in ${roomName} for ${newBookingData.date} (${newBookingData.start_time}-${newBookingData.end_time}).`,
+        type: "booking",
+      });
+
       showToast(`Reserved "${roomName}" for ${newBookingData.title}!`);
       setShowBookingModal(false);
       setNewBookingData({
