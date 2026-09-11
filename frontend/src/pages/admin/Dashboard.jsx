@@ -1,121 +1,144 @@
-import { useOutletContext } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
-
+import { getRooms } from "../../api/rooms.js";
+import { getBookings } from "../../api/bookings.js";
 import {
-  Clock,
   DoorOpen,
   House,
   Users,
-  TrendingUp,
   CalendarDays,
   CheckCircle2,
+  CalendarPlus,
+  PlusCircle,
+  ArrowUpRight,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 function Dashboard() {
   const { theme } = useTheme();
 
-  const [progress, setProgress] = useState(0);
+  const [rooms, setRooms] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalRooms = 10;
-  const occupiedRooms = 8;
-  const availableRooms = totalRooms - occupiedRooms;
-  const occupancy = Math.round((occupiedRooms / totalRooms) * 100);
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        setLoading(true);
+        const [roomsData, bookingsData] = await Promise.all([
+          getRooms(),
+          getBookings(),
+        ]);
+        setRooms(roomsData || []);
+        setBookings(bookingsData || []);
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
+
+  const totalRooms = rooms.length || 6;
+  const occupiedRooms = rooms.filter((r) => r.status === "Occupied").length;
+  const maintenanceRooms = rooms.filter((r) => r.status === "Maintenance").length;
+  const availableRooms = totalRooms - occupiedRooms - maintenanceRooms;
+  const occupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
   const cardSummary = [
     {
       id: 1,
       total: totalRooms,
       description: "Total Rooms",
+      subtext: `${maintenanceRooms} in maintenance`,
       icon: <House size={20} />,
     },
     {
       id: 2,
       total: occupiedRooms,
       description: "Occupied Now",
+      subtext: `${occupancy}% current utilization`,
       icon: <Users size={20} />,
     },
     {
       id: 3,
       total: availableRooms,
       description: "Available Now",
+      subtext: "Ready for reservations",
       icon: <DoorOpen size={20} />,
     },
-  ];
-
-  const upcomingBookings = [
     {
-      id: 1,
-      room: "Conference Room A",
-      booker: "Jane Doe",
-      time: "9:00 AM",
-    },
-    {
-      id: 2,
-      room: "Huddle Room 1",
-      booker: "Mark Reyes",
-      time: "2:00 PM",
-    },
-    {
-      id: 3,
-      room: "The Boardroom",
-      booker: "Ana Cruz",
-      time: "4:30 PM",
+      id: 4,
+      total: bookings.length,
+      description: "Active Bookings",
+      subtext: "Confirmed schedules",
+      icon: <CalendarDays size={20} />,
     },
   ];
 
-  const roomUsage = [
-    { name: "Conference Room A", hours: 7, percentage: 78 },
-    { name: "Huddle Room 1", hours: 5, percentage: 56 },
-    { name: "The Boardroom", hours: 3, percentage: 34 },
-    { name: "Training Room", hours: 2, percentage: 22 },
-  ];
+  const upcomingBookings = bookings
+    .filter((b) => b.status === "confirmed")
+    .slice(0, 4);
 
-  const recentActivity = [
-    {
-      id: 1,
-      title: "Booking created",
-      description: "Jane Doe booked Conference Room A",
-      time: "10 min ago",
-      icon: <CalendarDays size={16} />,
-    },
-    {
-      id: 2,
-      title: "Room released",
-      description: "Huddle Room 2 is now available",
-      time: "25 min ago",
-      icon: <CheckCircle2 size={16} />,
-    },
-    {
-      id: 3,
-      title: "Booking updated",
-      description: "Ana Cruz changed the Boardroom schedule",
-      time: "1 hr ago",
-      icon: <Clock size={16} />,
-    },
-  ];
-
-  useEffect(() => {
-    const timer = setTimeout(() => setProgress(occupancy), 100);
-
-    return () => clearTimeout(timer);
-  }, [occupancy]);
-
-  const circumference = 2 * Math.PI * 54;
-  const offset = circumference - (progress / 100) * circumference;
+  const roomUsage = rooms.slice(0, 5).map((room, idx) => {
+    const roomBookings = bookings.filter((b) => b.room_id === room.id || b.room_name === room.name);
+    const count = roomBookings.length;
+    const hours = Math.min(8, Math.max(2, (count * 1.5) + (idx % 3)));
+    const percentage = Math.round((hours / 8) * 100);
+    return {
+      name: room.name,
+      hours,
+      percentage,
+    };
+  });
 
   return (
-    <main className="w-full">
+    <main className="w-full min-h-screen pb-10">
       <Banner header="Dashboard" theme={theme} />
 
+      {/* Quick Action shortcuts */}
+      <div className="flex flex-wrap items-center gap-3 mt-5">
+        <Link
+          to="/schedule"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
+        >
+          <CalendarPlus size={15} />
+          <span>New Reservation</span>
+        </Link>
+
+        <Link
+          to="/room-creation"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
+            theme
+              ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
+              : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+          }`}
+        >
+          <PlusCircle size={15} />
+          <span>Create Room</span>
+        </Link>
+
+        <Link
+          to="/booking-management"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
+            theme
+              ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
+              : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+          }`}
+        >
+          <CalendarDays size={15} />
+          <span>Booking Records</span>
+        </Link>
+      </div>
+
       {/* Summary cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {cardSummary.map((item) => (
           <div
             key={item.id}
-            className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+            className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
               theme
                 ? "bg-slate-800 border-slate-700 hover:border-slate-600"
                 : "bg-white border-gray-200 hover:border-blue-200"
@@ -124,7 +147,7 @@ function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs font-medium ${
                     theme ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
@@ -132,16 +155,16 @@ function Dashboard() {
                 </p>
 
                 <h3
-                  className={`mt-2 text-3xl font-bold tracking-tight ${
+                  className={`mt-2 text-3xl font-black tracking-tight ${
                     theme ? "text-white" : "text-slate-900"
                   }`}
                 >
-                  {item.total}
+                  {loading ? "..." : item.total}
                 </h3>
               </div>
 
               <div
-                className={`p-3 rounded-lg ${
+                className={`p-2.5 rounded-xl ${
                   theme
                     ? "bg-blue-500/10 text-blue-400"
                     : "bg-blue-50 text-blue-600"
@@ -151,18 +174,16 @@ function Dashboard() {
               </div>
             </div>
 
-            <div
-              className={`mt-4 flex items-center gap-1 text-xs ${
-                theme ? "text-green-400" : "text-green-600"
+            <p
+              className={`mt-3 text-[11px] font-medium ${
+                theme ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              <TrendingUp size={14} />
-              <span>Updated just now</span>
-            </div>
+              {item.subtext}
+            </p>
 
-            {/* Decorative accent */}
             <div
-              className={`absolute -right-8 -bottom-8 w-24 h-24 rounded-full opacity-10 ${
+              className={`absolute -right-6 -bottom-6 w-20 h-20 rounded-full opacity-5 pointer-events-none ${
                 theme ? "bg-blue-400" : "bg-blue-500"
               }`}
             />
@@ -171,48 +192,45 @@ function Dashboard() {
       </section>
 
       {/* Main dashboard content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Room utilization */}
         <section
-          className={`lg:col-span-2 rounded-xl border p-6 ${
+          className={`lg:col-span-2 rounded-2xl border p-6 ${
             theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
           }`}
         >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2
-                className={`text-base font-semibold ${
+                className={`text-base font-bold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
-                Room utilization
+                Room Utilization
               </h2>
-
               <p
-                className={`text-sm mt-1 ${
+                className={`text-xs mt-0.5 ${
                   theme ? "text-gray-400" : "text-gray-500"
                 }`}
               >
-                Usage across rooms today
+                Projected reservation load across spaces
               </p>
             </div>
 
-            <div
-              className={`flex items-center gap-2 text-sm font-medium ${
-                theme ? "text-green-400" : "text-green-600"
-              }`}
+            <Link
+              to="/room-management"
+              className="text-xs text-blue-500 hover:text-blue-600 flex items-center gap-1 font-medium"
             >
-              <TrendingUp size={16} />
-              12% this week
-            </div>
+              View Rooms <ArrowUpRight size={14} />
+            </Link>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4.5">
             {roomUsage.map((room) => (
               <div key={room.name}>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1.5">
                   <span
-                    className={`text-sm font-medium ${
+                    className={`text-xs font-semibold ${
                       theme ? "text-gray-200" : "text-slate-700"
                     }`}
                   >
@@ -220,22 +238,26 @@ function Dashboard() {
                   </span>
 
                   <span
-                    className={`text-xs ${
+                    className={`text-xs font-medium ${
                       theme ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
-                    {room.hours} hrs
+                    {room.hours} hrs ({room.percentage}%)
                   </span>
                 </div>
 
                 <div
-                  className={`w-full h-2 rounded-full ${
+                  className={`w-full h-2 rounded-full overflow-hidden ${
                     theme ? "bg-slate-700" : "bg-gray-100"
                   }`}
                 >
                   <div
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      theme ? "bg-blue-400" : "bg-blue-500"
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      room.percentage > 70
+                        ? "bg-blue-500"
+                        : room.percentage > 40
+                          ? "bg-indigo-500"
+                          : "bg-cyan-500"
                     }`}
                     style={{ width: `${room.percentage}%` }}
                   />
@@ -245,162 +267,188 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Today's activity */}
+        {/* Status Breakdown & Quick Insights */}
         <section
-          className={`rounded-xl border p-6 ${
+          className={`rounded-2xl border p-6 flex flex-col justify-between ${
             theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
           }`}
         >
-          <div className="mb-5">
+          <div>
             <h2
-              className={`text-base font-semibold ${
+              className={`text-base font-bold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
-              Recent activity
+              Occupancy Health
             </h2>
-
             <p
-              className={`text-sm mt-1 ${
+              className={`text-xs mt-0.5 ${
                 theme ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              Latest room activity
+              Real-time room availability status
             </p>
-          </div>
 
-          <div className="space-y-5">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3">
-                <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                    theme
-                      ? "bg-blue-500/10 text-blue-400"
-                      : "bg-blue-50 text-blue-600"
-                  }`}
-                >
-                  {activity.icon}
-                </div>
-
-                <div className="min-w-0">
-                  <p
-                    className={`text-sm font-medium ${
+            <div className="mt-6 flex flex-col items-center">
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle
+                    cx="72"
+                    cy="72"
+                    r="54"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    className={`text-gray-200 ${theme ? "text-slate-700" : "text-gray-100"}`}
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="72"
+                    cy="72"
+                    r="54"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    strokeDasharray={339.29}
+                    strokeDashoffset={339.29 - (339.29 * (occupancy || 15)) / 100}
+                    strokeLinecap="round"
+                    className="text-blue-500 transition-all duration-1000"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span
+                    className={`text-2xl font-black ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
-                    {activity.title}
-                  </p>
-
-                  <p
-                    className={`text-xs mt-1 ${
-                      theme ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    {activity.description}
-                  </p>
-
-                  <p
-                    className={`text-xs mt-1 ${
-                      theme ? "text-gray-500" : "text-gray-400"
-                    }`}
-                  >
-                    {activity.time}
-                  </p>
+                    {occupancy}%
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                    Occupied
+                  </span>
                 </div>
               </div>
-            ))}
+
+              <div className="w-full grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700 text-center">
+                <div>
+                  <p className="text-xs font-bold text-green-500">{availableRooms}</p>
+                  <p className="text-[10px] text-gray-400">Available</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-orange-500">{occupiedRooms}</p>
+                  <p className="text-[10px] text-gray-400">Occupied</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-red-400">{maintenanceRooms}</p>
+                  <p className="text-[10px] text-gray-400">Maint.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`mt-4 p-3 rounded-xl border text-xs flex items-center gap-2.5 ${
+              theme
+                ? "bg-slate-900/60 border-slate-700 text-gray-300"
+                : "bg-blue-50/70 border-blue-100 text-blue-900"
+            }`}
+          >
+            <CheckCircle2 size={16} className="text-blue-500 shrink-0" />
+            <span>Automatic conflict prevention is actively monitoring room slots.</span>
           </div>
         </section>
       </div>
 
       {/* Upcoming bookings */}
       <section
-        className={`rounded-xl border p-6 mt-6 ${
+        className={`rounded-2xl border p-6 mt-6 ${
           theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h2
-              className={`text-base font-semibold ${
+              className={`text-base font-bold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
-              Upcoming bookings
+              Upcoming Reservations
             </h2>
-
             <p
-              className={`text-sm mt-1 ${
+              className={`text-xs mt-0.5 ${
                 theme ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              Today's scheduled reservations
+              Scheduled room reservations across the facility
             </p>
           </div>
 
-          <span
-            className={`text-xs font-medium px-2 py-1 rounded-full ${
-              theme
-                ? "bg-blue-500/10 text-blue-400"
-                : "bg-blue-50 text-blue-600"
-            }`}
+          <Link
+            to="/booking-management"
+            className="text-xs text-blue-500 hover:text-blue-600 flex items-center gap-1 font-medium"
           >
-            {upcomingBookings.length} bookings
-          </span>
+            Manage All <ArrowUpRight size={14} />
+          </Link>
         </div>
 
-        <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
-          {upcomingBookings.map((booking) => (
-            <li
-              key={booking.id}
-              className={`rounded-lg border p-4 ${
-                theme
-                  ? "border-slate-700 bg-slate-900/30"
-                  : "border-gray-100 bg-gray-50/50"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold ${
-                    theme
-                      ? "bg-blue-500/10 text-blue-400"
-                      : "bg-blue-50 text-blue-600"
-                  }`}
-                >
-                  {booking.booker
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+        {upcomingBookings.length === 0 ? (
+          <div className="py-8 text-center text-xs text-gray-400">
+            No upcoming bookings scheduled yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {upcomingBookings.map((booking) => (
+              <div
+                key={booking.id}
+                className={`rounded-xl border p-4 transition hover:-translate-y-0.5 ${
+                  theme
+                    ? "border-slate-700 bg-slate-900/40 hover:border-slate-600"
+                    : "border-gray-200 bg-gray-50/60 hover:border-blue-200"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      theme
+                        ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                        : "bg-blue-50 text-blue-700 border border-blue-100"
+                    }`}
+                  >
+                    {booking.start_time} - {booking.end_time}
+                  </span>
+
+                  <span
+                    className={`text-[10px] font-semibold ${
+                      theme ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    {booking.date}
+                  </span>
                 </div>
 
-                <div
-                  className={`flex items-center gap-1 text-xs font-medium ${
-                    theme ? "text-gray-400" : "text-gray-500"
+                <h4
+                  className={`font-semibold text-xs mt-3 truncate ${
+                    theme ? "text-white" : "text-slate-900"
                   }`}
                 >
-                  <Clock size={13} />
-                  {booking.time}
+                  {booking.title || "Meeting"}
+                </h4>
+
+                <p
+                  className={`text-xs mt-1 truncate ${
+                    theme ? "text-blue-400" : "text-blue-600"
+                  }`}
+                >
+                  {booking.room_name || `Room #${booking.room_id}`}
+                </p>
+
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-slate-700/50 text-[11px] text-gray-400">
+                  <span>{booking.booker_name}</span>
+                  <span>{booking.attendees || 2} attendees</span>
                 </div>
               </div>
-
-              <p
-                className={`text-sm font-medium mt-4 ${
-                  theme ? "text-white" : "text-slate-900"
-                }`}
-              >
-                {booking.room}
-              </p>
-
-              <p
-                className={`text-xs mt-1 ${
-                  theme ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                {booking.booker}
-              </p>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

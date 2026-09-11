@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 
-function Banner({ header, theme, toggleTheme }) {
+function Banner({ header, theme }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {

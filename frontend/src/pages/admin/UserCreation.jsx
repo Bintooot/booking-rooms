@@ -1,4 +1,3 @@
-import { useOutletContext } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import {
@@ -9,48 +8,33 @@ import {
   ShieldCheck,
   Mail,
   User,
-  CheckCircle2,
   LockKeyhole,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createUser, getUsers } from "../../api/users.js";
+import { useToast } from "../../components/Toast.jsx";
 
 function UserCreation() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [error, setError] = useState("");
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await getUsers();
+      setUsers(Array.isArray(data) ? data : data.users || []);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+      setUsers([]);
+    }
+  }, []);
 
   useEffect(() => {
     loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      setError("");
-
-      const data = await getUsers();
-
-      console.log("Users:", data);
-
-      setUsers(Array.isArray(data) ? data : data.users || []);
-    } catch (error) {
-      console.error("Failed to load users:", error);
-
-      setError(
-        error.response?.data?.error || error.message || "Failed to load users",
-      );
-
-      setUsers([]);
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
+  }, [loadUsers]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -85,21 +69,18 @@ function UserCreation() {
 
       await createUser(formData);
 
-      // Refresh users from database
       await loadUsers();
-
       setShowForm(false);
-
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        role: "",
-      });
+      resetForm();
+      showToast(`User "${formData.name}" created successfully!`, "success");
     } catch (error) {
       console.error(
         "Failed to create user:",
         error.response?.data?.error || error.message,
+      );
+      showToast(
+        error.response?.data?.error || error.message || "Failed to create user",
+        "error",
       );
     } finally {
       setLoading(false);

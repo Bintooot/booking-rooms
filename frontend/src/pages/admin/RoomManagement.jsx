@@ -1,6 +1,9 @@
-import { useOutletContext, useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { getRooms, updateRoom, deleteRoom as apiDeleteRoom } from "../../api/rooms.js";
+import { useToast } from "../../components/Toast.jsx";
 import {
   Search,
   Plus,
@@ -13,84 +16,67 @@ import {
   Trash2,
   Power,
   DoorOpen,
+  X,
+  MapPin,
+  Check,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+
+const AVAILABLE_AMENITIES = [
+  "WiFi",
+  "Projector",
+  "Display",
+  "Whiteboard",
+  "Video Conference",
+  "Sound System",
+  "Air Conditioning",
+  "Coffee Machine",
+];
 
 function RoomManagement() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
 
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      name: "Conference Room A",
-      location: "2nd Floor",
-      capacity: 12,
-      status: "Available",
-      description:
-        "Large conference room suitable for presentations and team meetings.",
-      amenities: ["WiFi", "Projector", "Display"],
-    },
-    {
-      id: 2,
-      name: "Huddle Room 1",
-      location: "1st Floor",
-      capacity: 6,
-      status: "Occupied",
-      description:
-        "Small private room for quick meetings and team discussions.",
-      amenities: ["WiFi", "Display"],
-    },
-    {
-      id: 3,
-      name: "The Boardroom",
-      location: "3rd Floor",
-      capacity: 20,
-      status: "Available",
-      description:
-        "Premium meeting room designed for executive and management meetings.",
-      amenities: ["WiFi", "Projector", "Display"],
-    },
-    {
-      id: 4,
-      name: "Meeting Room B",
-      location: "2nd Floor",
-      capacity: 8,
-      status: "Maintenance",
-      description:
-        "Medium-sized meeting room currently undergoing maintenance.",
-      amenities: ["WiFi", "Display"],
-    },
-    {
-      id: 5,
-      name: "Training Room",
-      location: "1st Floor",
-      capacity: 30,
-      status: "Available",
-      description:
-        "Spacious room designed for training sessions and workshops.",
-      amenities: ["WiFi", "Projector", "Display"],
-    },
-    {
-      id: 6,
-      name: "Executive Room",
-      location: "3rd Floor",
-      capacity: 8,
-      status: "Available",
-      description: "Quiet executive meeting space for private discussions.",
-      amenities: ["WiFi", "Display"],
-    },
-  ]);
+  // Edit Modal State
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    capacity: 4,
+    location: "",
+    description: "",
+    status: "Available",
+    amenities: [],
+  });
+
+  const loadRooms = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getRooms();
+      setRooms(data || []);
+    } catch {
+      showToast("Failed to load rooms", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
 
   const filteredRooms = useMemo(() => {
     return rooms.filter((room) => {
+      const name = room.name || "";
+      const loc = room.location || "";
       const matchesSearch =
-        room.name.toLowerCase().includes(search.toLowerCase()) ||
-        room.location.toLowerCase().includes(search.toLowerCase());
+        name.toLowerCase().includes(search.toLowerCase()) ||
+        loc.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
         statusFilter === "All" || room.status === statusFilter;
@@ -102,85 +88,141 @@ function RoomManagement() {
   const getStatusStyle = (status) => {
     if (status === "Available") {
       return theme
-        ? "bg-green-500/10 text-green-400 border-green-500/20"
+        ? "bg-green-500/15 text-green-400 border-green-500/30"
         : "bg-green-50 text-green-700 border-green-200";
     }
 
     if (status === "Occupied") {
       return theme
-        ? "bg-red-500/10 text-red-400 border-red-500/20"
-        : "bg-red-50 text-red-700 border-red-200";
+        ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+        : "bg-amber-50 text-amber-700 border-amber-200";
     }
 
     return theme
-      ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
-      : "bg-orange-50 text-orange-700 border-orange-200";
+      ? "bg-red-500/15 text-red-400 border-red-500/30"
+      : "bg-red-50 text-red-700 border-red-200";
   };
 
-  const toggleRoomStatus = (id) => {
-    setRooms((currentRooms) =>
-      currentRooms.map((room) =>
-        room.id === id
-          ? {
-              ...room,
-              status: room.status === "Available" ? "Maintenance" : "Available",
-            }
-          : room,
-      ),
-    );
-
+  const handleToggleStatus = async (room) => {
+    const nextStatus = room.status === "Maintenance" ? "Available" : "Maintenance";
+    try {
+      await updateRoom(room.id, { status: nextStatus, is_active: nextStatus !== "Maintenance" });
+      setRooms((prev) =>
+        prev.map((r) => (r.id === room.id ? { ...r, status: nextStatus } : r))
+      );
+      showToast(`"${room.name}" marked as ${nextStatus}`);
+    } catch {
+      showToast("Failed to update status", "error");
+    }
     setOpenMenu(null);
   };
 
-  const deleteRoom = (id) => {
-    const room = rooms.find((item) => item.id === id);
-
+  const handleDelete = async (room) => {
     const confirmed = window.confirm(
-      `Delete "${room?.name}"? This action cannot be undone.`,
+      `Delete room "${room.name}"? This action cannot be undone.`
     );
-
     if (!confirmed) return;
 
-    setRooms((currentRooms) => currentRooms.filter((room) => room.id !== id));
-
+    try {
+      await apiDeleteRoom(room.id);
+      setRooms((prev) => prev.filter((r) => r.id !== room.id));
+      showToast(`Room "${room.name}" deleted successfully`);
+    } catch {
+      showToast("Failed to delete room", "error");
+    }
     setOpenMenu(null);
   };
 
+  const openEditModal = (room) => {
+    setEditingRoom(room);
+    setEditFormData({
+      name: room.name || "",
+      capacity: room.capacity || 4,
+      location: room.location || "",
+      description: room.description || "",
+      status: room.status || "Available",
+      amenities: Array.isArray(room.amenities) ? [...room.amenities] : [],
+    });
+    setOpenMenu(null);
+  };
+
+  const toggleAmenity = (amenity) => {
+    setEditFormData((prev) => {
+      const exists = prev.amenities.includes(amenity);
+      return {
+        ...prev,
+        amenities: exists
+          ? prev.amenities.filter((a) => a !== amenity)
+          : [...prev.amenities, amenity],
+      };
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingRoom) return;
+
+    try {
+      const updated = await updateRoom(editingRoom.id, {
+        name: editFormData.name,
+        capacity: Number(editFormData.capacity),
+        location: editFormData.location,
+        description: editFormData.description,
+        status: editFormData.status,
+        amenities: editFormData.amenities,
+      });
+
+      setRooms((prev) =>
+        prev.map((r) => (r.id === editingRoom.id ? { ...r, ...updated } : r))
+      );
+      showToast(`Updated "${editFormData.name}" successfully!`);
+      setEditingRoom(null);
+    } catch {
+      showToast("Failed to save room updates", "error");
+    }
+  };
+
+  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition ${
+    theme
+      ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
+      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+  }`;
+
   return (
-    <main className="w-full min-h-screen">
+    <main className="w-full min-h-screen pb-12">
       <Banner header="Room Management" theme={theme} />
 
       {/* Page Header */}
-      <div className="mt-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-semibold ${
+            className={`text-lg font-bold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
-            Manage Rooms
+            Manage Rooms & Spaces
           </h2>
 
           <p
-            className={`text-sm mt-1 ${
+            className={`text-xs mt-0.5 ${
               theme ? "text-gray-400" : "text-gray-500"
             }`}
           >
-            Create, update, and manage your conference rooms.
+            Configure capacity, amenities, maintenance status, and schedules.
           </p>
         </div>
 
         <Link
           to="/room-creation"
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
         >
-          <Plus size={17} />
+          <Plus size={16} />
           Create Room
         </Link>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      {/* Summary Counters */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
         {[
           {
             label: "Total Rooms",
@@ -205,7 +247,7 @@ function RoomManagement() {
         ].map((item) => (
           <div
             key={item.label}
-            className={`rounded-xl border p-4 ${
+            className={`rounded-2xl border p-4 ${
               theme
                 ? "bg-slate-800 border-slate-700"
                 : "bg-white border-gray-200"
@@ -213,7 +255,7 @@ function RoomManagement() {
           >
             <div className="flex items-center justify-between">
               <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   theme
                     ? "bg-blue-500/10 text-blue-400"
                     : "bg-blue-50 text-blue-600"
@@ -223,7 +265,7 @@ function RoomManagement() {
               </div>
 
               <span
-                className={`text-2xl font-bold ${
+                className={`text-2xl font-black ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -232,7 +274,7 @@ function RoomManagement() {
             </div>
 
             <p
-              className={`text-xs mt-3 ${
+              className={`text-xs mt-3 font-medium ${
                 theme ? "text-gray-400" : "text-gray-500"
               }`}
             >
@@ -244,26 +286,25 @@ function RoomManagement() {
 
       {/* Search & Filters */}
       <section
-        className={`mt-6 rounded-xl border p-4 ${
+        className={`mt-6 rounded-2xl border p-4 ${
           theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
         }`}
       >
         <div className="flex flex-col md:flex-row gap-3">
-          {/* Search */}
           <div className="relative flex-1">
             <Search
               size={17}
-              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+              className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
                 theme ? "text-gray-500" : "text-gray-400"
               }`}
             />
 
             <input
               type="text"
-              placeholder="Search rooms..."
+              placeholder="Search by room name or floor location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm outline-none transition ${
+              className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-xs outline-none transition ${
                 theme
                   ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-500"
                   : "bg-gray-50 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-400"
@@ -271,17 +312,16 @@ function RoomManagement() {
             />
           </div>
 
-          {/* Status */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`rounded-lg border px-4 py-2.5 text-sm outline-none ${
+            className={`rounded-xl border px-4 py-2.5 text-xs font-medium outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
                 : "bg-gray-50 border-gray-200 text-slate-700"
             }`}
           >
-            <option value="All">All Status</option>
+            <option value="All">All Statuses</option>
             <option value="Available">Available</option>
             <option value="Occupied">Occupied</option>
             <option value="Maintenance">Maintenance</option>
@@ -289,258 +329,466 @@ function RoomManagement() {
         </div>
       </section>
 
-      {/* Room Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
-        {filteredRooms.map((room) => (
-          <article
-            key={room.id}
-            className={`group rounded-xl border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
-              theme
-                ? "bg-slate-800 border-slate-700 hover:border-slate-600"
-                : "bg-white border-gray-200 hover:border-blue-200"
-            }`}
-          >
-            {/* Room visual */}
-            <div
-              className={`h-28 relative overflow-hidden ${
+      {/* Room Cards Grid */}
+      {loading ? (
+        <div className="py-16 text-center text-xs text-gray-400">
+          Loading rooms...
+        </div>
+      ) : (
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
+          {filteredRooms.map((room) => (
+            <article
+              key={room.id}
+              className={`group rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                openMenu === room.id ? "relative z-30" : "relative z-10"
+              } ${
                 theme
-                  ? "bg-linear-to-br from-slate-700 to-slate-900"
-                  : "bg-linear-to-br from-blue-50 to-slate-100"
+                  ? "bg-slate-800 border-slate-700 hover:border-slate-600"
+                  : "bg-white border-gray-200 hover:border-blue-200"
               }`}
             >
-              {/* Decorative room structure */}
+              {/* Room Header Banner */}
               <div
-                className={`absolute left-8 right-8 bottom-5 h-12 rounded-t-lg border-2 ${
+                className={`h-24 relative rounded-t-2xl p-3 flex justify-between items-start ${
                   theme
-                    ? "border-slate-600 bg-slate-800/70"
-                    : "border-blue-100 bg-white/70"
+                    ? "bg-gradient-to-br from-slate-700 to-slate-900"
+                    : "bg-gradient-to-br from-blue-50 to-slate-100"
                 }`}
-              />
-
-              <div
-                className={`absolute left-12 bottom-9 w-8 h-5 rounded border ${
-                  theme
-                    ? "border-slate-500 bg-slate-700"
-                    : "border-blue-200 bg-blue-50"
-                }`}
-              />
-
-              <div
-                className={`absolute right-12 bottom-8 w-10 h-2 rounded-full ${
-                  theme ? "bg-slate-600" : "bg-blue-100"
-                }`}
-              />
-
-              {/* Status */}
-              <span
-                className={`absolute top-3 left-3 px-2.5 py-1 rounded-full border text-[10px] font-semibold ${getStatusStyle(
-                  room.status,
-                )}`}
               >
-                {room.status}
-              </span>
-
-              {/* Menu */}
-              <div className="absolute top-2 right-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenMenu(openMenu === room.id ? null : room.id)
-                  }
-                  className={`p-2 rounded-lg ${
-                    theme
-                      ? "text-gray-400 hover:bg-slate-700 hover:text-white"
-                      : "text-gray-500 hover:bg-white hover:text-slate-900"
-                  }`}
+                <span
+                  className={`px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                    room.status,
+                  )}`}
                 >
-                  <MoreVertical size={17} />
-                </button>
+                  {room.status}
+                </span>
 
-                {openMenu === room.id && (
-                  <div
-                    className={`absolute right-0 top-10 z-20 w-44 rounded-lg border shadow-xl overflow-hidden ${
+                {/* Dropdown Menu */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenMenu(openMenu === room.id ? null : room.id)
+                    }
+                    className={`p-1.5 rounded-lg transition relative z-50 ${
                       theme
-                        ? "bg-slate-900 border-slate-700"
-                        : "bg-white border-gray-200"
+                        ? "text-gray-400 hover:bg-slate-700 hover:text-white"
+                        : "text-gray-500 hover:bg-white hover:text-slate-900"
                     }`}
                   >
-                    <button
-                      type="button"
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left ${
-                        theme
-                          ? "text-gray-300 hover:bg-slate-800"
-                          : "text-slate-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Pencil size={14} />
-                      Edit Room
-                    </button>
+                    <MoreVertical size={17} />
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={() => toggleRoomStatus(room.id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left ${
-                        theme
-                          ? "text-gray-300 hover:bg-slate-800"
-                          : "text-slate-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Power size={14} />
-                      {room.status === "Maintenance"
-                        ? "Set Available"
-                        : "Set Maintenance"}
-                    </button>
+                  {openMenu === room.id && (
+                    <>
+                      {/* Invisible backdrop to close menu on click outside */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setOpenMenu(null)}
+                      />
+                      <div
+                        className={`absolute right-0 top-9 z-50 w-44 rounded-xl border shadow-2xl overflow-hidden ${
+                          theme
+                            ? "bg-slate-900 border-slate-700"
+                            : "bg-white border-gray-200"
+                        }`}
+                      >
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(room)}
+                        className={`w-full flex items-center gap-2 px-3.5 z-50 py-2.5 text-xs text-left ${
+                          theme
+                            ? "text-gray-300 hover:bg-slate-800"
+                            : "text-slate-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <Pencil size={14} />
+                        Edit Details
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => navigate("/schedule")}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs text-left ${
-                        theme
-                          ? "text-gray-300 hover:bg-slate-800"
-                          : "text-slate-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <CalendarDays size={14} />
-                      View Schedule
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(room)}
+                        className={`w-full flex items-center gap-2 px-3.5 z-50 py-2.5 text-xs text-left ${
+                          theme
+                            ? "text-gray-300 hover:bg-slate-800"
+                            : "text-slate-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <Power size={14} />
+                        {room.status === "Maintenance"
+                          ? "Mark Available"
+                          : "Mark Maintenance"}
+                      </button>
 
-                    <div
-                      className={`border-t ${
-                        theme ? "border-slate-700" : "border-gray-100"
-                      }`}
-                    />
+                      <button
+                        type="button"
+                        onClick={() => navigate("/schedule")}
+                        className={`w-full flex items-center gap-2 px-3.5 z-50 py-2.5 text-xs text-left ${
+                          theme
+                            ? "text-gray-300 hover:bg-slate-800"
+                            : "text-slate-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <CalendarDays size={14} />
+                        View Schedule
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => deleteRoom(room.id)}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-500 hover:bg-red-500/10 text-left"
-                    >
-                      <Trash2 size={14} />
-                      Delete Room
-                    </button>
-                  </div>
+                      <div
+                        className={`border-t ${
+                          theme ? "border-slate-800" : "border-gray-100"
+                        }`}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(room)}
+                        className="w-full flex items-center gap-2 px-3.5 py-2.5 text-xs text-red-500 hover:bg-red-500/10 text-left"
+                      >
+                        <Trash2 size={14} />
+                        Delete Room
+                      </button>
+                    </div>
+                  </>
                 )}
+                </div>
               </div>
-            </div>
 
-            {/* Content */}
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3
-                    className={`font-semibold ${
-                      theme ? "text-white" : "text-slate-900"
+              {/* Body Content */}
+              <div className="p-5 z-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3
+                      className={`font-bold text-sm ${
+                        theme ? "text-white" : "text-slate-900"
+                      }`}
+                    >
+                      {room.name}
+                    </h3>
+
+                    <p
+                      className={`text-xs mt-0.5 flex items-center gap-1 ${
+                        theme ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      <MapPin size={12} />
+                      {room.location || "Office Space"}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                      theme
+                        ? "bg-slate-700 text-gray-200"
+                        : "bg-gray-100 text-slate-700"
                     }`}
                   >
-                    {room.name}
-                  </h3>
-
-                  <p
-                    className={`text-xs mt-1 ${
-                      theme ? "text-gray-500" : "text-gray-400"
-                    }`}
-                  >
-                    {room.location}
-                  </p>
+                    <Users size={13} />
+                    {room.capacity} seats
+                  </div>
                 </div>
 
+                <p
+                  className={`text-xs leading-relaxed mt-3 line-clamp-2 ${
+                    theme ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {room.description || "Fully equipped room ready for collaboration."}
+                </p>
+
+                {/* Amenities pills */}
+                <div className="flex flex-wrap gap-1.5 mt-4 min-h-12 content-start">
+                  {(room.amenities || ["WiFi"]).map((amenity) => (
+                    <span
+                      key={amenity}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                        theme
+                          ? "bg-slate-700/80 text-gray-300"
+                          : "bg-blue-50 text-blue-700"
+                      }`}
+                    >
+                      {amenity === "WiFi" && <Wifi size={10} />}
+                      {amenity === "Projector" && <Monitor size={10} />}
+                      {amenity === "Display" && <Monitor size={10} />}
+                      {amenity}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Quick actions row */}
                 <div
-                  className={`flex items-center gap-1 text-xs ${
+                  className={`flex items-center gap-2 mt-4 pt-4 border-t ${
+                    theme ? "border-slate-700" : "border-gray-100"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => navigate("/schedule")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+                      theme
+                        ? "bg-slate-700 text-gray-200 hover:bg-slate-600"
+                        : "bg-gray-100 text-slate-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <CalendarDays size={14} />
+                    Schedule
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(room)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
+                  >
+                    <Pencil size={14} />
+                    Edit
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredRooms.length === 0 && (
+        <div
+          className={`mt-6 rounded-2xl border p-12 text-center ${
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          }`}
+        >
+          <DoorOpen
+            size={36}
+            className={`mx-auto ${theme ? "text-gray-600" : "text-gray-300"}`}
+          />
+          <h3
+            className={`mt-3 text-sm font-bold ${
+              theme ? "text-white" : "text-slate-900"
+            }`}
+          >
+            No rooms match your criteria
+          </h3>
+          <p
+            className={`text-xs mt-1 ${
+              theme ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
+            Try adjusting your search query or clear the status filter.
+          </p>
+        </div>
+      )}
+
+      {/* EDIT ROOM MODAL */}
+      {editingRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setEditingRoom(null)}
+          />
+
+          <section
+            className={`relative w-full max-w-xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
+              theme
+                ? "bg-slate-800 border border-slate-700"
+                : "bg-white border border-gray-200"
+            }`}
+          >
+            {/* Header */}
+            <div
+              className={`flex items-center justify-between px-6 py-5 border-b ${
+                theme ? "border-slate-700" : "border-gray-100"
+              }`}
+            >
+              <div>
+                <h2
+                  className={`text-base font-bold ${
+                    theme ? "text-white" : "text-slate-900"
+                  }`}
+                >
+                  Edit Room: {editingRoom.name}
+                </h2>
+                <p
+                  className={`text-xs mt-0.5 ${
                     theme ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
-                  <Users size={13} />
-                  {room.capacity}
+                  Update room capacity, location, and equipment.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditingRoom(null)}
+                className={`p-2 rounded-lg transition ${
+                  theme
+                    ? "text-gray-400 hover:text-white hover:bg-slate-700"
+                    : "text-gray-400 hover:text-slate-900 hover:bg-gray-100"
+                }`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  Room Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                  required
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    className={`block text-xs font-semibold mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Capacity (Seats)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editFormData.capacity}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, capacity: e.target.value })
+                    }
+                    required
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-xs font-semibold mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Current Status
+                  </label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, status: e.target.value })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="Available">Available</option>
+                    <option value="Occupied">Occupied</option>
+                    <option value="Maintenance">Maintenance</option>
+                  </select>
                 </div>
               </div>
 
-              <p
-                className={`text-xs leading-5 mt-4 ${
-                  theme ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                {room.description}
-              </p>
-
-              {/* Amenities */}
-              <div className="flex flex-wrap gap-2 mt-4">
-                {room.amenities.map((amenity) => (
-                  <span
-                    key={amenity}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] ${
-                      theme
-                        ? "bg-slate-700 text-gray-300"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {amenity === "WiFi" && <Wifi size={11} />}
-                    {amenity === "Projector" && <Monitor size={11} />}
-                    {amenity === "Display" && <Monitor size={11} />}
-
-                    {amenity}
-                  </span>
-                ))}
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  Floor / Location
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.location}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, location: e.target.value })
+                  }
+                  required
+                  className={inputClass}
+                />
               </div>
 
-              {/* Actions */}
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  Description
+                </label>
+                <textarea
+                  rows="3"
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, description: e.target.value })
+                  }
+                  className={`${inputClass} resize-none`}
+                />
+              </div>
+
+              {/* Amenities Selector */}
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-2 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  Select Amenities
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_AMENITIES.map((amenity) => {
+                    const isSelected = editFormData.amenities.includes(amenity);
+                    return (
+                      <button
+                        type="button"
+                        key={amenity}
+                        onClick={() => toggleAmenity(amenity)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
+                          isSelected
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : theme
+                              ? "bg-slate-900 border-slate-700 text-gray-300 hover:border-slate-500"
+                              : "bg-gray-50 border-gray-200 text-slate-700 hover:border-gray-300"
+                        }`}
+                      >
+                        {isSelected && <Check size={12} />}
+                        {amenity}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
               <div
-                className={`flex items-center gap-2 mt-5 pt-4 border-t ${
+                className={`flex justify-end gap-3 pt-4 border-t ${
                   theme ? "border-slate-700" : "border-gray-100"
                 }`}
               >
                 <button
                   type="button"
-                  onClick={() => navigate("/schedule")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition ${
+                  onClick={() => setEditingRoom(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
                     theme
-                      ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                      : "bg-gray-100 text-slate-600 hover:bg-gray-200"
+                      ? "text-gray-300 hover:bg-slate-700"
+                      : "text-slate-600 hover:bg-gray-100"
                   }`}
                 >
-                  <CalendarDays size={14} />
-                  Schedule
+                  Cancel
                 </button>
 
                 <button
-                  type="button"
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 transition"
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
                 >
-                  <Pencil size={14} />
-                  Edit
+                  Save Changes
                 </button>
               </div>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      {/* Empty state */}
-      {filteredRooms.length === 0 && (
-        <div
-          className={`mt-6 rounded-xl border p-12 text-center ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
-          }`}
-        >
-          <DoorOpen
-            size={35}
-            className={`mx-auto ${theme ? "text-gray-600" : "text-gray-300"}`}
-          />
-
-          <h3
-            className={`mt-4 font-semibold ${
-              theme ? "text-white" : "text-slate-900"
-            }`}
-          >
-            No rooms found
-          </h3>
-
-          <p
-            className={`text-sm mt-1 ${
-              theme ? "text-gray-500" : "text-gray-400"
-            }`}
-          >
-            Try changing your search or filter.
-          </p>
+            </form>
+          </section>
         </div>
       )}
     </main>

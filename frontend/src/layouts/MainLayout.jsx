@@ -1,4 +1,3 @@
-import Sidebar from "../components/Sidebar.jsx";
 import Theme from "../components/Theme.jsx";
 import { Outlet } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext.jsx";

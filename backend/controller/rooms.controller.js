@@ -1,5 +1,5 @@
 import {
-  getAllActiveRoom,
+  getAllRooms,
   getRoomById,
   createRoom,
   updateRoom,
@@ -8,13 +8,11 @@ import {
 
 export const getRoomsController = async (req, res) => {
   try {
-    const rooms = await getAllActiveRoom();
-    if (rooms.length === 0) {
-      return res.status(404).json({ error: "No rooms found." });
-    }
+    const activeOnly = req.query.active_only === "true";
+    const rooms = await getAllRooms(activeOnly);
     res.json(rooms);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching rooms:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -28,14 +26,14 @@ export const getRoomByIdController = async (req, res) => {
     }
     res.json(room);
   } catch (error) {
-    console.error(error);
+    console.error(`Error fetching room ${req.params.id}:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 export const createnewRoomController = async (req, res) => {
   try {
-    const { name, capacity, location, description, amenities } = req.body;
+    const { name, capacity, location, description, amenities, is_active, type } = req.body;
 
     if (!name || !capacity) {
       return res.status(400).json({ error: "name and capacity are required" });
@@ -43,15 +41,17 @@ export const createnewRoomController = async (req, res) => {
 
     const newRoom = await createRoom({
       name,
-      capacity,
+      capacity: Number(capacity),
       location,
       description,
       amenities,
+      is_active,
+      type,
     });
 
     res.status(201).json(newRoom);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating room:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -59,15 +59,7 @@ export const createnewRoomController = async (req, res) => {
 export const updateRoomController = async (req, res) => {
   try {
     const roomId = req.params.id;
-    const { name, capacity, location, description, amenities } = req.body;
-
-    const updatedRoom = await updateRoom(roomId, {
-      name,
-      capacity,
-      location,
-      description,
-      amenities,
-    });
+    const updatedRoom = await updateRoom(roomId, req.body);
 
     if (!updatedRoom) {
       return res.status(404).json({ error: "Room not found" });
@@ -75,7 +67,7 @@ export const updateRoomController = async (req, res) => {
 
     res.json(updatedRoom);
   } catch (error) {
-    console.error(error);
+    console.error(`Error updating room ${req.params.id}:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -88,9 +80,9 @@ export const deleteRoomController = async (req, res) => {
     if (!deletedRoom) {
       return res.status(404).json({ error: "Room not found" });
     }
-    res.json({message: "Room deleted successfully", room: deletedRoom});
+    res.json({ message: "Room deleted successfully", id: Number(roomId), room: deletedRoom });
   } catch (error) {
-    console.log(error);
+    console.error(`Error deleting room ${req.params.id}:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
