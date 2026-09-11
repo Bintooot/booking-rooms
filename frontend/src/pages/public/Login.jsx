@@ -53,8 +53,6 @@ function Login() {
           </span>
         </div>
       </header>
-
-    
     </main>
   );
 }

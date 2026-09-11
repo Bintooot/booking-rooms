@@ -1,8 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import RoomPage from "./pages/RoomPage.jsx";
-import BookingPage from "./pages/BookingPage.jsx";
+
 import MainLayout from "./layouts/MainLayout.jsx";
-import LandingPage from "./pages/LandingPage.jsx";
 
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
@@ -17,6 +15,7 @@ function App() {
   return (
     <div>
       <Routes>
+        {/* Public Portal */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Login />} />
         </Route>
