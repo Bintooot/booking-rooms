@@ -63,8 +63,8 @@ function Login() {
         <div
           className={`lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden text-white ${
             theme
-              ? "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-900"
-              : "bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900"
+              ? "bg-linear-to-br from-blue-900 via-indigo-950 to-slate-900"
+              : "bg-linear-to-br from-blue-700 via-blue-800 to-indigo-900"
           }`}
         >
           {/* Decorative background glow */}

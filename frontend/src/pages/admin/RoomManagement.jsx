@@ -351,8 +351,8 @@ function RoomManagement() {
               <div
                 className={`h-24 relative rounded-t-2xl p-3 flex justify-between items-start ${
                   theme
-                    ? "bg-gradient-to-br from-slate-700 to-slate-900"
-                    : "bg-gradient-to-br from-blue-50 to-slate-100"
+                    ? "bg-linear-to-br from-slate-700 to-slate-900"
+                    : "bg-linear-to-br from-blue-50 to-slate-100"
                 }`}
               >
                 <span
