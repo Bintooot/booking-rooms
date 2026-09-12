@@ -47,7 +47,7 @@ function Sidebar({ theme }) {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
   };
 
   const navSections = [
