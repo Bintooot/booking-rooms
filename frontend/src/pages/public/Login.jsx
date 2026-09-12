@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   Building2,
   CalendarCheck,
@@ -17,7 +18,7 @@ import {
 
 function Login() {
   const { theme } = useTheme();
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState(() => {
@@ -85,14 +86,14 @@ function Login() {
 
           {/* Brand header */}
           <div className="relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+            <Link to="/" className="inline-flex items-center gap-3 group transition-transform hover:scale-[1.02]">
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/20 transition">
                 <DoorOpen size={22} className="text-blue-300" />
               </div>
               <h1 className="text-2xl font-black tracking-tight text-white">
                 Confe<span className="text-blue-300">Book</span>
               </h1>
-            </div>
+            </Link>
 
             <div className="mt-8 space-y-3">
               <h2 className="text-2xl font-bold leading-tight">
@@ -130,7 +131,7 @@ function Login() {
 
           {/* Footer note */}
           <div className="relative z-10 pt-4 border-t border-white/10 text-xs text-blue-200/60 flex items-center justify-between">
-            <span>Enterprise Suite v1.0</span>
+            <span>Enterprise Suite v1.2</span>
             <span className="flex items-center gap-1">
               <ShieldCheck size={13} /> Secured
             </span>
@@ -140,6 +141,41 @@ function Login() {
         {/* Right column / Login form */}
         <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
           <div className="max-w-md w-full mx-auto">
+            {/* Back to Home Link */}
+            <div className="mb-6">
+              <Link
+                to="/"
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold transition ${
+                  theme ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-blue-600"
+                }`}
+              >
+                <ArrowLeft size={14} />
+                <span>Back to Homepage</span>
+              </Link>
+            </div>
+
+            {/* Active Session Notice */}
+            {isAuthenticated && (
+              <div
+                className={`mb-6 p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+                  theme
+                    ? "bg-blue-950/40 border-blue-800/60 text-blue-300"
+                    : "bg-blue-50 border-blue-200 text-blue-800"
+                }`}
+              >
+                <div className="text-xs">
+                  <span className="font-bold">Active Session:</span> {user?.name} ({user?.role})
+                </div>
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs"
+                >
+                  <span>Dashboard</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+            )}
+
             <div>
               <h2
                 className={`text-2xl font-bold tracking-tight ${

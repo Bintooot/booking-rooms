@@ -15,11 +15,19 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const local = localStorage.getItem("confe_user");
     if (local) {
-      try { return JSON.parse(local); } catch {}
+      try {
+        return JSON.parse(local);
+      } catch (_e) {
+        // Ignore JSON parse error
+      }
     }
     const session = sessionStorage.getItem("confe_user");
     if (session) {
-      try { return JSON.parse(session); } catch {}
+      try {
+        return JSON.parse(session);
+      } catch (_e) {
+        // Ignore JSON parse error
+      }
     }
     return DEFAULT_USER;
   });

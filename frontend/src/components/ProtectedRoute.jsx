@@ -9,10 +9,6 @@ function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation();
   const { showToast } = useToast();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
   let hasAccess = canAccessRoute(user?.role, location.pathname);
 
   if (allowedRoles && allowedRoles.length > 0) {
@@ -28,6 +24,10 @@ function ProtectedRoute({ children, allowedRoles }) {
       showToast("Access Denied: You do not have permission to view that page.", "error");
     }
   }, [isAuthenticated, hasAccess, location.pathname, showToast]);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
   if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;

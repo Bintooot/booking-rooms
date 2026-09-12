@@ -5,6 +5,7 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // Pages
+import Landing from "./pages/public/Landing.jsx";
 import Login from "./pages/public/Login.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import RoomManagement from "./pages/admin/RoomManagement.jsx";
@@ -24,9 +25,12 @@ import NotFound from "./pages/public/NotFound.jsx";
 function App() {
   return (
     <Routes>
-      {/* Public Portal */}
+      {/* Public Landing Page */}
+      <Route path="/" element={<Landing />} />
+
+      {/* Public Login Portal */}
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
       </Route>
 
       {/* Admin Portal (Protected) */}
