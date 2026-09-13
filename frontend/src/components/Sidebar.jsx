@@ -21,16 +21,20 @@ import { canAccessRoute } from "../utils/permissions.js";
 import { getUnreadCount, NOTIFICATIONS_UPDATED_EVENT } from "../services/notificationService.js";
 
 function Sidebar({ theme }) {
+  const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [permVersion, setPermVersion] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(() => getUnreadCount());
+  const [unreadCount, setUnreadCount] = useState(() => getUnreadCount(user));
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    setUnreadCount(getUnreadCount(user));
+  }, [user]);
 
   useEffect(() => {
     const handlePermUpdate = () => setPermVersion((v) => v + 1);
-    const handleNotifUpdate = () => setUnreadCount(getUnreadCount());
+    const handleNotifUpdate = () => setUnreadCount(getUnreadCount(user));
 
     window.addEventListener("confe_permissions_updated", handlePermUpdate);
     window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotifUpdate);
@@ -39,7 +43,7 @@ function Sidebar({ theme }) {
       window.removeEventListener("confe_permissions_updated", handlePermUpdate);
       window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotifUpdate);
     };
-  }, []);
+  }, [user]);
 
   function toggleShrink() {
     setIsCollapsed((prev) => !prev);
@@ -186,9 +190,9 @@ function Sidebar({ theme }) {
               theme ? "text-white" : "text-blue-950"
             }`}
           >
-            Confe
+            Space
             <span className={theme ? "text-blue-400" : "text-blue-600"}>
-              Book
+              Sync
             </span>
           </h1>
         </Link>

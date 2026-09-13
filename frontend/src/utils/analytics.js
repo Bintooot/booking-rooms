@@ -1,3 +1,5 @@
+import { getBookingTimingState } from "./overtime.js";
+
 /**
  * Analytics Utility
  * Standardized statistical calculations and date range filtering for reports.
@@ -143,6 +145,40 @@ export function computeDemandMetrics(bookings) {
   return {
     peakHour: peakHourStr,
     peakDays: peakDaysStr,
+  };
+}
+
+/**
+ * Computes overall overtime hours and incidents.
+ */
+export function computeOvertimeMetrics(bookings, currentTime = new Date()) {
+  if (!Array.isArray(bookings) || bookings.length === 0) {
+    return {
+      totalOvertimeHours: 0,
+      overtimeIncidents: 0,
+      activeOvertimeCount: 0,
+    };
+  }
+
+  let totalOvertimeHours = 0;
+  let overtimeIncidents = 0;
+  let activeOvertimeCount = 0;
+
+  bookings.forEach((b) => {
+    const timing = getBookingTimingState(b, currentTime);
+    if (timing.overtimeHours > 0) {
+      totalOvertimeHours += timing.overtimeHours;
+      overtimeIncidents += 1;
+    }
+    if (timing.isLiveOvertime) {
+      activeOvertimeCount += 1;
+    }
+  });
+
+  return {
+    totalOvertimeHours: Number(totalOvertimeHours.toFixed(1)),
+    overtimeIncidents,
+    activeOvertimeCount,
   };
 }
 

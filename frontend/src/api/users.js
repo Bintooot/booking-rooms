@@ -95,3 +95,17 @@ export async function deleteUser(id) {
   saveLocalUsers(updated);
   return { success: true, id };
 }
+
+export async function changePassword({ currentPassword, newPassword, targetUserId }) {
+  try {
+    const response = await api.post("/users/change-password", {
+      currentPassword,
+      newPassword,
+      targetUserId,
+    });
+    return response.data;
+  } catch (err) {
+    const msg = err.response?.data?.error || err.message || "Failed to change password.";
+    throw new Error(msg);
+  }
+}

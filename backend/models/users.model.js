@@ -15,6 +15,11 @@ export async function getUserById(id) {
   return result.rows[0] || null;
 }
 
+export async function getUserWithPasswordById(id) {
+  const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  return result.rows[0] || null;
+}
+
 export async function findUserByEmail(email) {
   const result = await pool.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1)", [
     email.trim(),

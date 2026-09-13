@@ -8,12 +8,15 @@ import {
   createBooking,
   updateBookingStatus,
   deleteBooking,
+  checkInBooking,
+  checkOutBooking,
 } from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
 import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
 import { logAuditEvent } from "../../services/auditService.js";
 import { addNotification } from "../../services/notificationService.js";
+import { getBookingTimingState } from "../../utils/overtime.js";
 import {
   Search,
   Plus,
@@ -25,6 +28,9 @@ import {
   Ban,
   CheckCircle2,
   Check,
+  AlertTriangle,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 
 function BookingManagement() {
@@ -35,6 +41,13 @@ function BookingManagement() {
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Keep live timing in sync every 30 seconds
+  useEffect(() => {
+    const ticker = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(ticker);
+  }, []);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -76,6 +89,44 @@ function BookingManagement() {
     loadData();
   }, [loadData]);
 
+  const handleCheckIn = async (id, title) => {
+    try {
+      const nowIso = new Date().toISOString();
+      await checkInBooking(id);
+      setBookings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, check_in_time: nowIso } : b))
+      );
+      logAuditEvent({
+        action: "Room Session Started (Check-In)",
+        actor: user?.name || "User",
+        target: title,
+        type: "booking",
+      });
+      showToast(`Checked in for "${title}"`);
+    } catch {
+      showToast("Failed to check in", "error");
+    }
+  };
+
+  const handleCheckOut = async (id, title) => {
+    try {
+      const nowIso = new Date().toISOString();
+      await checkOutBooking(id);
+      setBookings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, check_out_time: nowIso } : b))
+      );
+      logAuditEvent({
+        action: "Room Session Released (Check-Out)",
+        actor: user?.name || "User",
+        target: title,
+        type: "booking",
+      });
+      showToast(`Released room for "${title}"`);
+    } catch {
+      showToast("Failed to release room", "error");
+    }
+  };
+
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
       const matchesSearch =
@@ -83,8 +134,18 @@ function BookingManagement() {
         (b.booker_name && b.booker_name.toLowerCase().includes(search.toLowerCase())) ||
         (b.room_name && b.room_name.toLowerCase().includes(search.toLowerCase()));
 
-      const matchesStatus =
-        statusFilter === "All" || b.status?.toLowerCase() === statusFilter.toLowerCase();
+      const timing = getBookingTimingState(b, currentTime);
+
+      let matchesStatus = true;
+      if (statusFilter === "overtime") {
+        matchesStatus = timing.isLiveOvertime;
+      } else if (statusFilter === "in_progress") {
+        matchesStatus = timing.state === "in_progress";
+      } else if (statusFilter === "completed") {
+        matchesStatus = timing.state === "completed";
+      } else if (statusFilter !== "All") {
+        matchesStatus = b.status?.toLowerCase() === statusFilter.toLowerCase();
+      }
 
       const matchesRoom =
         roomFilter === "All" ||
@@ -93,7 +154,7 @@ function BookingManagement() {
 
       return matchesSearch && matchesStatus && matchesRoom;
     });
-  }, [bookings, search, statusFilter, roomFilter]);
+  }, [bookings, search, statusFilter, roomFilter, currentTime]);
 
   const handleCancel = async (id, title) => {
     try {
@@ -113,6 +174,9 @@ function BookingManagement() {
         title: "Reservation Cancelled",
         message: `Booking "${title}" was cancelled by ${user?.name || "User"}.`,
         type: "booking",
+        targetUserId: user?.id,
+        targetEmail: user?.email,
+        targetRoles: ["Administrator", "Manager"],
       });
 
       showToast(`Booking "${title}" cancelled`);
@@ -165,7 +229,7 @@ function BookingManagement() {
   const handleCreate = async (e) => {
     e.preventDefault();
     const selectedRoom = rooms.find((r) => String(r.id) === String(formData.room_id));
-    const roomName = selectedRoom ? selectedRoom.name : "Conference Room";
+    const roomName = selectedRoom ? selectedRoom.name : "Room / Space";
 
     // Standard policy validation (advance window, max duration, conflict)
     const validation = validateBookingAgainstPolicy(formData, bookings);
@@ -181,6 +245,7 @@ function BookingManagement() {
     try {
       const newBooking = await createBooking({
         ...formData,
+        user_id: user?.id,
         room_name: roomName,
         status: "confirmed",
       });
@@ -197,6 +262,9 @@ function BookingManagement() {
         title: "New Reservation Confirmed",
         message: `"${formData.title}" reserved in ${roomName} for ${formData.date} (${formData.start_time}-${formData.end_time}).`,
         type: "booking",
+        targetUserId: user?.id,
+        targetEmail: user?.email,
+        targetRoles: ["Administrator", "Manager"],
       });
 
       showToast(`Reservation created for ${formData.title}`);
@@ -338,7 +406,10 @@ function BookingManagement() {
             }`}
           >
             <option value="All">All Statuses</option>
+            <option value="overtime">⚠️ Overtime Sessions</option>
+            <option value="in_progress">🟢 In Session</option>
             <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
 
@@ -458,40 +529,126 @@ function BookingManagement() {
                     </td>
 
                     <td className="py-4 px-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                          booking.status === "confirmed"
-                            ? theme
-                              ? "bg-green-500/10 text-green-400 border-green-500/20"
-                              : "bg-green-50 text-green-700 border-green-200"
-                            : theme
-                              ? "bg-red-500/10 text-red-400 border-red-500/20"
-                              : "bg-red-50 text-red-700 border-red-200"
-                        }`}
-                      >
-                        {booking.status?.toUpperCase() || "CONFIRMED"}
-                      </span>
+                      {(() => {
+                        const timing = getBookingTimingState(booking, currentTime);
+
+                        if (booking.status === "cancelled") {
+                          return (
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                                theme
+                                  ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                              }`}
+                            >
+                              CANCELLED
+                            </span>
+                          );
+                        }
+
+                        if (timing.isLiveOvertime) {
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 animate-pulse">
+                                <AlertTriangle size={12} />
+                                OVERTIME (+{timing.overtimeMinutes}m)
+                              </span>
+                              <span className="text-[10px] text-rose-500 font-semibold">
+                                Exceeded schedule
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        if (timing.state === "in_progress") {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                              IN SESSION
+                            </span>
+                          );
+                        }
+
+                        if (timing.state === "completed") {
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold border border-slate-400/20 bg-slate-500/10 text-slate-500 dark:text-slate-400">
+                                COMPLETED
+                              </span>
+                              {timing.overtimeMinutes > 0 && (
+                                <span className="text-[10px] text-amber-500 font-medium">
+                                  +{timing.overtimeMinutes}m OT recorded
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                              theme
+                                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                            }`}
+                          >
+                            UPCOMING
+                          </span>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-4 px-5 text-right">
                       {(() => {
+                        const timing = getBookingTimingState(booking, currentTime);
                         const isOwnBooking =
                           booking.booker_name?.toLowerCase() === user?.name?.toLowerCase();
                         const canCancel =
                           hasPermission(user?.role, "cancel_any") ||
                           (hasPermission(user?.role, "cancel_own") && isOwnBooking);
                         const canDelete = hasPermission(user?.role, "cancel_any");
-
-                        if (!canCancel && !canDelete) {
-                          return (
-                            <span className="text-[11px] text-gray-400 italic px-2">
-                              View only
-                            </span>
-                          );
-                        }
+                        const canManageLifecycle =
+                          hasPermission(user?.role, "cancel_any") || isOwnBooking;
 
                         return (
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Check In action for upcoming session */}
+                            {canManageLifecycle &&
+                              booking.status === "confirmed" &&
+                              !booking.check_in_time &&
+                              !booking.check_out_time &&
+                              timing.state !== "completed" && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCheckIn(booking.id, booking.title)}
+                                  title="Check In (Start Session)"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition"
+                                >
+                                  <LogIn size={13} />
+                                  <span>Check In</span>
+                                </button>
+                              )}
+
+                            {/* Release / Check Out action for active or overtime sessions */}
+                            {canManageLifecycle &&
+                              booking.status === "confirmed" &&
+                              !booking.check_out_time &&
+                              (timing.state === "in_progress" || timing.isLiveOvertime) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCheckOut(booking.id, booking.title)}
+                                  title="Release Room / Check Out"
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition shadow-xs ${
+                                    timing.isLiveOvertime
+                                      ? "bg-rose-600 hover:bg-rose-700 text-white"
+                                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                                  }`}
+                                >
+                                  <LogOut size={13} />
+                                  <span>Release</span>
+                                </button>
+                              )}
+
                             {canCancel && (
                               booking.status === "confirmed" ? (
                                 <button

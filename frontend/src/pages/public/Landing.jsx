@@ -83,8 +83,8 @@ const FALLBACK_ROOMS = [
 
 const FAQS = [
   {
-    q: "How does ConfeBook prevent double bookings?",
-    a: "ConfeBook runs real-time millisecond overlap validation on both client and server tiers. Any requested time window is strictly compared against confirmed reservations and pending blocks for that specific space, completely eliminating double-bookings.",
+    q: "How does SpaceSync prevent double bookings?",
+    a: "SpaceSync runs real-time millisecond overlap validation on both client and server tiers. Any requested time window is strictly compared against confirmed reservations and pending blocks for that specific space, completely eliminating double-bookings.",
   },
   {
     q: "Can administrators customize booking policies and advance limits?",
@@ -92,14 +92,14 @@ const FAQS = [
   },
   {
     q: "What roles and permissions are supported?",
-    a: "ConfeBook features multi-tier Role-Based Access Control (RBAC): Administrators retain full governance over rooms, users, system settings, and audit logs; Managers have access to reservations, analytics, and reports; and Employees can seamlessly book, view schedules, and manage their own reservations.",
+    a: "SpaceSync features multi-tier Role-Based Access Control (RBAC): Administrators retain full governance over rooms, users, system settings, and audit logs; Managers have access to reservations, analytics, and reports; and Employees can seamlessly book, view schedules, and manage their own reservations.",
   },
   {
-    q: "Can we track who booked or modified a conference room?",
+    q: "Can we track who booked or modified a room or workspace?",
     a: "Every booking creation, time modification, approval, and cancellation is immutably recorded in the Live Audit Log with timestamps, user identities, action targets, and one-click CSV export for enterprise compliance.",
   },
   {
-    q: "Is ConfeBook responsive for tablets and mobile devices?",
+    q: "Is SpaceSync responsive for tablets and mobile devices?",
     a: "Yes. The entire application is built with a mobile-first responsive layout, ensuring staff can reserve rooms, check live schedules, and manage meetings on smartphones, tablets, or boardroom wall displays.",
   },
 ];
@@ -191,7 +191,7 @@ function Landing() {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-tight flex items-center gap-1.5">
-                Confe<span className="text-blue-600 dark:text-blue-400">Book</span>
+                Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                   v1.2
                 </span>
@@ -367,7 +367,7 @@ function Landing() {
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-6">
               <Sparkles size={14} className="animate-pulse" />
-              <span>Smart Conference & Facility Reservation Engine</span>
+              <span>Smart Space & Room Reservation Engine</span>
             </div>
 
             {/* Headline */}
@@ -458,7 +458,7 @@ function Landing() {
                   <div className="w-3 h-3 rounded-full bg-rose-500/80" />
                   <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                   <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="ml-2 text-xs font-mono text-slate-400">portal.confebook.internal/schedule</span>
+                  <span className="ml-2 text-xs font-mono text-slate-400">portal.spacesync.internal/schedule</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
@@ -556,7 +556,7 @@ function Landing() {
                 <span>Flexible Corporate Facilities</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
-                Explore Conference Rooms & Spaces
+                Explore Available Rooms & Spaces
               </h2>
               <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xl">
                 From executive boardrooms to acoustic 1-on-1 focus pods, explore our curated spaces ready for instant reservation.
@@ -689,7 +689,7 @@ function Landing() {
             Engineered for Modern Enterprise Workspaces
           </h2>
           <p className="mt-3 text-base text-slate-600 dark:text-slate-400">
-            From intuitive calendar booking to strict policy enforcement, ConfeBook keeps your company&apos;s physical spaces optimized.
+            From intuitive calendar booking to strict policy enforcement, SpaceSync keeps your company&apos;s physical spaces optimized.
           </p>
         </div>
 
@@ -798,7 +798,7 @@ function Landing() {
               <span>Simple 3-Step Process</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
-              How ConfeBook Operates
+              How SpaceSync Operates
             </h2>
             <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-400">
               Reserve your ideal workspace in less than thirty seconds without coordination headaches.
@@ -861,7 +861,7 @@ function Landing() {
             </h2>
             <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed">
               Traditional spreadsheets and chaotic chat channels cause interrupted meetings and empty ghost rooms.
-              ConfeBook gives facilities managers and team leads total control over meeting spaces.
+              SpaceSync gives facilities managers and team leads total control over rooms and shared spaces.
             </p>
 
             <div className="space-y-4 pt-2">
@@ -911,7 +911,7 @@ function Landing() {
                   : "bg-linear-to-br from-blue-50 via-indigo-50/50 to-white border-slate-200"
               }`}
             >
-              <h3 className="text-xl font-bold mb-6">Why Teams Choose ConfeBook</h3>
+              <h3 className="text-xl font-bold mb-6">Why Teams Choose SpaceSync</h3>
 
               <div className="space-y-4">
                 <div
@@ -974,7 +974,7 @@ function Landing() {
             </div>
             <h2 className="text-3xl font-black tracking-tight">Got Questions? We&apos;ve Got Answers.</h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Everything you need to know about setting up and using the ConfeBook system.
+              Everything you need to know about setting up and using the SpaceSync platform.
             </p>
           </div>
 
@@ -1062,7 +1062,7 @@ function Landing() {
                 <DoorOpen size={20} />
               </div>
               <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-                Confe<span className="text-blue-600 dark:text-blue-400">Book</span>
+                Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
               </span>
             </div>
 
@@ -1096,7 +1096,7 @@ function Landing() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <p>&copy; {new Date().getFullYear()} ConfeBook Technologies Inc. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} SpaceSync Technologies Inc. All rights reserved.</p>
             <p className="flex items-center gap-1">
               <ShieldCheck size={14} className="text-blue-500" />
               <span>Enterprise Grade Security & Conflict-Free Guarantee</span>

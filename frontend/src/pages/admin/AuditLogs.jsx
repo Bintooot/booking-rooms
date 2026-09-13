@@ -5,6 +5,7 @@ import { useToast } from "../../components/Toast.jsx";
 import { Search, Download, Trash2 } from "lucide-react";
 import {
   getAuditLogs,
+  fetchAuditLogs,
   clearAuditLogs,
   exportAuditLogsCSV,
   AUDIT_UPDATED_EVENT,
@@ -18,6 +19,10 @@ function AuditLogs() {
   const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
+    fetchAuditLogs().then((serverLogs) => {
+      if (serverLogs) setLogs(serverLogs);
+    });
+
     const handleUpdate = () => {
       setLogs(getAuditLogs());
     };

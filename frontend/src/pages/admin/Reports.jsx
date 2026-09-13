@@ -8,13 +8,16 @@ import {
   filterBookingsByRange,
   calculateDurationHours,
   computeDemandMetrics,
+  computeOvertimeMetrics,
 } from "../../utils/analytics.js";
+import { getBookingTimingState } from "../../utils/overtime.js";
 import {
   Download,
   Calendar,
   Clock,
   TrendingUp,
   PieChart,
+  AlertTriangle,
 } from "lucide-react";
 
 function Reports() {
@@ -24,6 +27,13 @@ function Reports() {
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [timeRange, setTimeRange] = useState("This Month");
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Real-time ticker to keep overtime calculations synchronized
+  useEffect(() => {
+    const ticker = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(ticker);
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -44,7 +54,7 @@ function Reports() {
   const cancelledBookings = periodBookings.filter((b) => b.status === "cancelled").length;
   const cancellationRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
 
-  // Real calculated duration hours
+  // Real scheduled duration hours
   const totalHoursBooked = useMemo(() => {
     const total = periodBookings.reduce((sum, b) => {
       return sum + calculateDurationHours(b.start_time, b.end_time);
@@ -59,15 +69,27 @@ function Reports() {
     return computeDemandMetrics(periodBookings);
   }, [periodBookings]);
 
+  // Real-time overtime aggregation across the reporting window
+  const overtimeMetrics = useMemo(() => {
+    return computeOvertimeMetrics(periodBookings, currentTime);
+  }, [periodBookings, currentTime]);
+
   const roomStats = useMemo(() => {
     return rooms.map((room) => {
       const roomBookings = periodBookings.filter(
         (b) => String(b.room_id) === String(room.id) || b.room_name === room.name
       );
 
-      const totalHours = roomBookings.reduce((sum, b) => {
-        return sum + calculateDurationHours(b.start_time, b.end_time);
-      }, 0);
+      let scheduledHours = 0;
+      let overtimeHours = 0;
+
+      roomBookings.forEach((b) => {
+        const timing = getBookingTimingState(b, currentTime);
+        scheduledHours += timing.scheduledHours;
+        overtimeHours += timing.overtimeHours;
+      });
+
+      const totalHours = Number((scheduledHours + overtimeHours).toFixed(1));
 
       const utilizationScore = totalBookings > 0
         ? Math.min(100, Math.round((roomBookings.length / totalBookings) * 100))
@@ -78,19 +100,22 @@ function Reports() {
         capacity: room.capacity,
         location: room.location,
         bookingCount: roomBookings.length,
-        totalHours: Number(totalHours.toFixed(1)),
+        scheduledHours: Number(scheduledHours.toFixed(1)),
+        overtimeHours: Number(overtimeHours.toFixed(1)),
+        totalHours,
         utilizationScore,
       };
     });
-  }, [rooms, periodBookings, totalBookings]);
+  }, [rooms, periodBookings, totalBookings, currentTime]);
 
   const exportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += `Reporting Period: ${timeRange}\n`;
-    csvContent += "Room Name,Capacity,Location,Bookings Count,Total Hours,Demand Score\n";
+    csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csvContent += "Room Name,Capacity,Location,Bookings Count,Scheduled Hours,Overtime Hours,Total Utilized Hours,Demand Score\n";
 
     roomStats.forEach((r) => {
-      csvContent += `"${r.name}",${r.capacity},"${r.location}",${r.bookingCount},${r.totalHours},${r.utilizationScore}%\n`;
+      csvContent += `"${r.name}",${r.capacity},"${r.location}",${r.bookingCount},${r.scheduledHours},${r.overtimeHours},${r.totalHours},${r.utilizationScore}%\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -98,7 +123,7 @@ function Reports() {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `confe_room_reports_${timeRange.toLowerCase().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`
+      `spacesync_room_reports_${timeRange.toLowerCase().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -156,50 +181,80 @@ function Reports() {
       </div>
 
       {/* Top metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
         {[
           {
             label: "Total Reservations",
             value: totalBookings,
             sub: `${confirmedBookings} confirmed`,
             icon: <Calendar size={18} />,
+            alert: false,
           },
           {
-            label: "Total Hours Booked",
+            label: "Scheduled Hours",
             value: `${totalHoursBooked}h`,
-            sub: `Average meeting: ${avgMeetingHours}h`,
+            sub: `Avg: ${avgMeetingHours}h / meeting`,
             icon: <Clock size={18} />,
+            alert: false,
+          },
+          {
+            label: "Overtime Recorded",
+            value: `${overtimeMetrics.totalOvertimeHours}h`,
+            sub:
+              overtimeMetrics.overtimeIncidents > 0
+                ? `${overtimeMetrics.overtimeIncidents} overrun ${
+                    overtimeMetrics.overtimeIncidents === 1 ? "incident" : "incidents"
+                  }`
+                : "No overruns recorded",
+            icon: <AlertTriangle size={18} />,
+            alert: overtimeMetrics.totalOvertimeHours > 0,
           },
           {
             label: "Peak Demand Time",
             value: demandMetrics.peakHour,
             sub: demandMetrics.peakDays,
             icon: <TrendingUp size={18} />,
+            alert: false,
           },
           {
             label: "Cancellation Rate",
             value: `${cancellationRate}%`,
             sub: `${cancelledBookings} meetings cancelled`,
             icon: <PieChart size={18} />,
+            alert: false,
           },
         ].map((item) => (
           <div
             key={item.label}
             className={`rounded-2xl border p-4 ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+              item.alert
+                ? theme
+                  ? "bg-rose-950/20 border-rose-500/40"
+                  : "bg-rose-50/70 border-rose-200"
+                : theme
+                  ? "bg-slate-800 border-slate-700"
+                  : "bg-white border-gray-200"
             }`}
           >
             <div className="flex items-center justify-between">
               <div
                 className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  theme ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"
+                  item.alert
+                    ? "bg-rose-500/20 text-rose-500"
+                    : theme
+                      ? "bg-blue-500/10 text-blue-400"
+                      : "bg-blue-50 text-blue-600"
                 }`}
               >
                 {item.icon}
               </div>
               <span
                 className={`text-2xl font-black ${
-                  theme ? "text-white" : "text-slate-900"
+                  item.alert
+                    ? "text-rose-600 dark:text-rose-400"
+                    : theme
+                      ? "text-white"
+                      : "text-slate-900"
                 }`}
               >
                 {item.value}
@@ -214,7 +269,11 @@ function Reports() {
             </p>
             <p
               className={`text-[11px] mt-0.5 ${
-                theme ? "text-gray-400" : "text-gray-500"
+                item.alert
+                  ? "text-rose-500 dark:text-rose-400 font-medium"
+                  : theme
+                    ? "text-gray-400"
+                    : "text-gray-500"
               }`}
             >
               {item.sub}
@@ -252,27 +311,39 @@ function Reports() {
                     : "border-gray-200 bg-gray-50 text-gray-500"
                 }`}
               >
-                <th className="py-3.5 px-6">Room Name</th>
-                <th className="py-3.5 px-4">Location</th>
-                <th className="py-3.5 px-4">Capacity</th>
-                <th className="py-3.5 px-4">Bookings</th>
-                <th className="py-3.5 px-4">Estimated Hours</th>
-                <th className="py-3.5 px-6">Demand Score</th>
+                <th className="py-3.5 px-5">Room Name</th>
+                <th className="py-3.5 px-3">Location</th>
+                <th className="py-3.5 px-3">Capacity</th>
+                <th className="py-3.5 px-3">Bookings</th>
+                <th className="py-3.5 px-3">Scheduled</th>
+                <th className="py-3.5 px-3">Overtime</th>
+                <th className="py-3.5 px-3">Total Utilized</th>
+                <th className="py-3.5 px-5">Demand Score</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
               {roomStats.map((room) => (
                 <tr key={room.name} className="transition hover:bg-blue-500/5">
-                  <td className="py-4 px-6 font-semibold">
+                  <td className="py-4 px-5 font-semibold">
                     <span className={theme ? "text-white" : "text-slate-900"}>
                       {room.name}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-gray-400">{room.location}</td>
-                  <td className="py-4 px-4">{room.capacity} seats</td>
-                  <td className="py-4 px-4 font-bold text-blue-500">{room.bookingCount}</td>
-                  <td className="py-4 px-4">{room.totalHours} hrs</td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-3 text-gray-400">{room.location}</td>
+                  <td className="py-4 px-3">{room.capacity} seats</td>
+                  <td className="py-4 px-3 font-bold text-blue-500">{room.bookingCount}</td>
+                  <td className="py-4 px-3 text-slate-600 dark:text-gray-300">{room.scheduledHours}h</td>
+                  <td className="py-4 px-3">
+                    {room.overtimeHours > 0 ? (
+                      <span className="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400 font-mono">
+                        +{room.overtimeHours}h
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 font-mono">0.0h</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-3 font-bold">{room.totalHours}h</td>
+                  <td className="py-4 px-5">
                     <div className="flex items-center gap-2">
                       <div
                         className={`flex-1 h-2 rounded-full overflow-hidden ${

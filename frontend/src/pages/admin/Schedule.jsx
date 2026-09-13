@@ -196,7 +196,7 @@ function Schedule() {
     }
 
     const selectedRoom = rooms.find((r) => String(r.id) === String(newBookingData.room_id));
-    const roomName = selectedRoom ? selectedRoom.name : "Conference Room";
+    const roomName = selectedRoom ? selectedRoom.name : "Room / Space";
 
     const validation = validateBookingAgainstPolicy(newBookingData, bookings);
     if (!validation.isValid) {
@@ -213,6 +213,7 @@ function Schedule() {
     try {
       const created = await createBooking({
         room_id: Number(newBookingData.room_id),
+        user_id: user?.id,
         room_name: roomName,
         title: newBookingData.title,
         booker_name: newBookingData.booker_name,
@@ -238,6 +239,9 @@ function Schedule() {
         title: "New Reservation Confirmed",
         message: `"${newBookingData.title}" reserved in ${roomName} for ${newBookingData.date} (${newBookingData.start_time}-${newBookingData.end_time}).`,
         type: "booking",
+        targetUserId: user?.id,
+        targetEmail: user?.email,
+        targetRoles: ["Administrator", "Manager"],
       });
 
       showToast(`Reserved "${roomName}" for ${newBookingData.title}!`);
@@ -595,7 +599,7 @@ function Schedule() {
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
-                  Conference Room
+                  Room / Space
                 </label>
                 <select
                   value={newBookingData.room_id}

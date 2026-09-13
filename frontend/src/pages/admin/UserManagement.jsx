@@ -18,6 +18,10 @@ import {
   X,
   UserCheck,
   Briefcase,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 function UserManagement() {
@@ -36,7 +40,15 @@ function UserManagement() {
     name: "",
     email: "",
     role: "Employee",
+    password: "",
   });
+
+  // Change Password Modal
+  const [passwordUser, setPasswordUser] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -75,6 +87,7 @@ function UserManagement() {
       name: user.name || "",
       email: user.email || "",
       role: user.role || "Employee",
+      password: "",
     });
   };
 
@@ -83,7 +96,20 @@ function UserManagement() {
     if (!editingUser) return;
 
     try {
-      const updated = await updateUser(editingUser.id, editData);
+      const payload = {
+        name: editData.name,
+        email: editData.email,
+        role: editData.role,
+      };
+      if (editData.password && editData.password.trim().length > 0) {
+        if (editData.password.trim().length < 6) {
+          showToast("Password must be at least 6 characters.", "error");
+          return;
+        }
+        payload.password = editData.password.trim();
+      }
+
+      const updated = await updateUser(editingUser.id, payload);
       setUsers((prev) =>
         prev.map((u) => (u.id === editingUser.id ? { ...u, ...updated } : u))
       );
@@ -99,6 +125,51 @@ function UserManagement() {
       setEditingUser(null);
     } catch {
       showToast("Failed to update user", "error");
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!passwordUser) return;
+
+    if (!newPassword || newPassword.length < 6) {
+      showToast("New password must be at least 6 characters.", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast("Passwords do not match.", "error");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await updateUser(passwordUser.id, { password: newPassword });
+
+      logAuditEvent({
+        action: "Password Reset",
+        actor: currentUser?.name || "Administrator",
+        target: `${passwordUser.name} (${passwordUser.email})`,
+        type: "user",
+      });
+
+      addNotification({
+        title: "User Password Reset",
+        message: `Password for "${passwordUser.name}" was reset by Administrator.`,
+        type: "security",
+        targetUserId: passwordUser.id,
+        targetEmail: passwordUser.email,
+        targetRoles: ["Administrator"],
+      });
+
+      showToast(`Password for "${passwordUser.name}" updated successfully!`);
+      setPasswordUser(null);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      showToast("Failed to reset password", "error");
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -121,6 +192,7 @@ function UserManagement() {
         title: "User Account Removed",
         message: `Account for "${user.name}" was deleted.`,
         type: "user",
+        targetRoles: ["Administrator"],
       });
 
       showToast(`User "${user.name}" removed`);
@@ -364,6 +436,19 @@ function UserManagement() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
+                            onClick={() => {
+                              setPasswordUser(user);
+                              setNewPassword("");
+                              setConfirmPassword("");
+                            }}
+                            title="Reset Password"
+                            className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition"
+                          >
+                            <KeyRound size={15} />
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => openEdit(user)}
                             title="Edit User"
                             className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-500/10 transition"
@@ -489,6 +574,26 @@ function UserManagement() {
                 </select>
               </div>
 
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  New Password <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="password"
+                  value={editData.password || ""}
+                  onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                  placeholder="Leave blank to keep current password"
+                  className={inputClass}
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Only fill this out if you wish to reset this user&apos;s password.
+                </p>
+              </div>
+
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
                   theme ? "border-slate-700" : "border-gray-100"
@@ -511,6 +616,151 @@ function UserManagement() {
                   className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* DEDICATED RESET PASSWORD MODAL */}
+      {passwordUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setPasswordUser(null)}
+          />
+
+          <section
+            className={`relative w-full max-w-md rounded-3xl shadow-2xl ${
+              theme
+                ? "bg-slate-800 border border-slate-700"
+                : "bg-white border border-gray-200"
+            }`}
+          >
+            <div
+              className={`flex items-center justify-between px-6 py-5 border-b ${
+                theme ? "border-slate-700" : "border-gray-100"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+                  <KeyRound size={18} />
+                </div>
+                <div>
+                  <h3
+                    className={`text-base font-bold ${
+                      theme ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    Reset Password
+                  </h3>
+                  <p className="text-[11px] text-gray-400">
+                    For {passwordUser.name} ({passwordUser.email})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPasswordUser(null)}
+                className={`p-1.5 rounded-lg transition ${
+                  theme ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-slate-900"
+                }`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="p-6 space-y-4">
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    required
+                    minLength={6}
+                    className={`w-full rounded-xl border pl-10 pr-10 py-2.5 text-xs outline-none transition ${
+                      theme
+                        ? "bg-slate-900 border-slate-700 text-white focus:border-amber-400"
+                        : "bg-white border-gray-200 text-slate-900 focus:border-amber-500"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    theme ? "text-gray-300" : "text-slate-700"
+                  }`}
+                >
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <Lock
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter new password"
+                    required
+                    minLength={6}
+                    className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-xs outline-none transition ${
+                      theme
+                        ? "bg-slate-900 border-slate-700 text-white focus:border-amber-400"
+                        : "bg-white border-gray-200 text-slate-900 focus:border-amber-500"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div
+                className={`flex justify-end gap-3 pt-4 border-t ${
+                  theme ? "border-slate-700" : "border-gray-100"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setPasswordUser(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                    theme
+                      ? "text-gray-300 hover:bg-slate-700"
+                      : "text-slate-600 hover:bg-gray-100"
+                  }`}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-md transition disabled:opacity-50"
+                >
+                  {passwordLoading ? "Updating..." : "Update Password"}
                 </button>
               </div>
             </form>

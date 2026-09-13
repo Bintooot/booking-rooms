@@ -1,7 +1,10 @@
 /**
  * Settings Service
  * Standardized service for managing organization policies and booking constraints.
+ * Persists to PostgreSQL via /api/settings with robust local cache fallback.
  */
+
+import { api } from "../api/client.js";
 
 const SETTINGS_STORAGE_KEY = "confe_settings";
 export const SETTINGS_UPDATED_EVENT = "confe_settings_updated";
@@ -18,7 +21,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
 });
 
 /**
- * Retrieve current settings, falling back to defaults.
+ * Synchronously retrieve current settings from cache, falling back to defaults.
  */
 export function getSettings() {
   const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -40,7 +43,31 @@ export function getSettings() {
 }
 
 /**
- * Persist updated settings and broadcast the update event.
+ * Asynchronously fetch settings from PostgreSQL backend.
+ */
+export async function fetchSettings() {
+  try {
+    const response = await api.get("/settings");
+    if (response.data) {
+      const normalized = {
+        ...DEFAULT_SETTINGS,
+        ...response.data,
+        maxBookingDays: Number(response.data.maxBookingDays) || DEFAULT_SETTINGS.maxBookingDays,
+        maxDurationHours: Number(response.data.maxDurationHours) || DEFAULT_SETTINGS.maxDurationHours,
+        bufferMinutes: Number(response.data.bufferMinutes) || DEFAULT_SETTINGS.bufferMinutes,
+      };
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
+      window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
+      return normalized;
+    }
+  } catch (err) {
+    console.warn("Backend /settings unavailable, using cached settings:", err.message);
+  }
+  return getSettings();
+}
+
+/**
+ * Persist updated settings to PostgreSQL and local cache, broadcasting update event.
  */
 export function saveSettings(newSettings) {
   const normalized = {
@@ -53,6 +80,12 @@ export function saveSettings(newSettings) {
 
   localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
+
+  // Asynchronously persist to PostgreSQL
+  api.put("/settings", normalized).catch((err) => {
+    console.warn("Could not persist settings to backend:", err.message);
+  });
+
   return normalized;
 }
 
@@ -165,4 +198,3 @@ export function validateBookingAgainstPolicy(bookingData, existingBookings = [],
 
   return { isValid: true };
 }
-

@@ -111,6 +111,7 @@ function RoomCreation() {
         title: "New Room Provisioned",
         message: `"${formData.roomName}" is now active and ready for bookings.`,
         type: "maintenance",
+        targetRoles: ["*"],
       });
 
       showToast(`Room "${formData.roomName}" created successfully!`);
