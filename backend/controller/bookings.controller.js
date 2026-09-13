@@ -60,9 +60,13 @@ export const createBookingController = async (req, res) => {
       formattedEnd = `${date}T${end_time.length === 5 ? end_time + ":00" : end_time}`;
     }
 
+    const userId = req.user?.id || req.body.user_id || null;
+    const authorName = booker_name || user_name || req.user?.name || "Team Member";
+
     const newBooking = await createBooking({
       room_id,
-      booker_name: booker_name || user_name || "Team Member",
+      user_id: userId,
+      booker_name: authorName,
       title: title || "Meeting",
       start_time: formattedStart,
       end_time: formattedEnd,

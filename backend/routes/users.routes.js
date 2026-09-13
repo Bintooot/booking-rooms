@@ -6,6 +6,7 @@ import {
   loginUserController,
   updateUserController,
   deleteUserController,
+  changePasswordController,
 } from "../controller/users.controller.js";
 import { verifyToken, requireRoles } from "../middleware/auth.middleware.js";
 
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post("/login", loginUserController);
 
 // Protected routes
+router.post("/change-password", verifyToken, changePasswordController);
 router.get("/", verifyToken, getUsersController);
 router.get("/:id", verifyToken, getUserbyIdController);
 router.post("/register", verifyToken, requireRoles("Administrator"), registerUserController);

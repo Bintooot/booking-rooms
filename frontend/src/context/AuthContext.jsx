@@ -1,24 +1,18 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { api } from "../api/client.js";
 import { logAuditEvent } from "../services/auditService.js";
 
 const AuthContext = createContext(null);
 
-const DEFAULT_USER = {
-  id: 1,
-  name: "Administrator",
-  email: "admin@company.com",
-  role: "Administrator",
-};
-
 export function AuthProvider({ children }) {
+  // Initialize user strictly from stored session or null (production ready)
   const [user, setUser] = useState(() => {
     const local = localStorage.getItem("confe_user");
     if (local) {
       try {
         return JSON.parse(local);
       } catch (_e) {
-        // Ignore JSON parse error
+        localStorage.removeItem("confe_user");
       }
     }
     const session = sessionStorage.getItem("confe_user");
@@ -26,19 +20,50 @@ export function AuthProvider({ children }) {
       try {
         return JSON.parse(session);
       } catch (_e) {
-        // Ignore JSON parse error
+        sessionStorage.removeItem("confe_user");
       }
     }
-    return DEFAULT_USER;
+    return null;
   });
 
+  // Initialize token strictly from stored session or null (production ready)
   const [token, setToken] = useState(() => {
     return (
       localStorage.getItem("token") ||
       sessionStorage.getItem("token") ||
-      "demo-jwt-token-12345"
+      null
     );
   });
+
+  const logout = useCallback(() => {
+    if (user) {
+      logAuditEvent({
+        action: "System Logout",
+        actor: user.name,
+        target: "Web Portal",
+        type: "auth",
+      });
+    }
+
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("confe_user");
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("confe_user");
+    sessionStorage.removeItem("token");
+  }, [user]);
+
+  // Listen for session expiration events dispatched by API client interceptors
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      logout();
+    };
+
+    window.addEventListener("confe_auth_expired", handleAuthExpired);
+    return () => {
+      window.removeEventListener("confe_auth_expired", handleAuthExpired);
+    };
+  }, [logout]);
 
   const login = async (email, password, rememberMe = true) => {
     let authenticatedUser = null;
@@ -51,30 +76,27 @@ export function AuthProvider({ children }) {
         authenticatedToken = response.data.token;
       }
     } catch (err) {
-      console.warn("Backend login failed, using local session:", err.message);
-    }
-
-    if (!authenticatedUser) {
-      let role = "Employee";
-      let userName = email.split("@")[0] || "User";
-
-      if (email.toLowerCase().includes("admin")) {
-        role = "Administrator";
-        userName = "System Admin";
-      } else if (email.toLowerCase().includes("manager")) {
-        role = "Manager";
-        userName = "Project Manager";
+      // If server responded with an HTTP status (e.g., 401 Unauthorized, 400 Bad Request)
+      if (err.response) {
+        const errorMsg =
+          err.response.data?.error ||
+          err.response.data?.message ||
+          "Invalid email or password.";
+        throw new Error(errorMsg);
       }
 
-      authenticatedUser = {
-        id: Date.now(),
-        name: userName,
-        email,
-        role,
-      };
-      authenticatedToken = `jwt-${Date.now()}`;
+      const detail = err.message ? ` (${err.message})` : "";
+      const targetUrl = api.defaults.baseURL || "http://localhost:4000/api";
+      throw new Error(
+        `Unable to connect to the authentication server at ${targetUrl}.${detail} Please verify backend is running on port 4000 and CORS allows your address.`
+      );
     }
 
+    if (!authenticatedUser || !authenticatedToken) {
+      throw new Error("Authentication failed. Please check your credentials.");
+    }
+
+    // Persist session to appropriate storage tier
     if (rememberMe) {
       localStorage.setItem("confe_user", JSON.stringify(authenticatedUser));
       localStorage.setItem("token", authenticatedToken);
@@ -100,24 +122,6 @@ export function AuthProvider({ children }) {
     return authenticatedUser;
   };
 
-  const logout = () => {
-    if (user) {
-      logAuditEvent({
-        action: "System Logout",
-        actor: user.name,
-        target: "Web Portal",
-        type: "auth",
-      });
-    }
-
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("confe_user");
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("confe_user");
-    sessionStorage.removeItem("token");
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -140,4 +144,3 @@ export function useAuth() {
   }
   return context;
 }
-

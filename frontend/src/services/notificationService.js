@@ -1,7 +1,10 @@
 /**
  * Notification Service
- * Standardized notification dispatcher and storage engine.
+ * Role-based and user-targeted notification dispatcher with per-user read states.
+ * Persists to PostgreSQL via /api/notifications with robust local cache fallback.
  */
+
+import { api } from "../api/client.js";
 
 const NOTIFICATION_STORAGE_KEY = "confe_notifications";
 export const NOTIFICATIONS_UPDATED_EVENT = "confe_notifications_updated";
@@ -9,21 +12,21 @@ export const NOTIFICATIONS_UPDATED_EVENT = "confe_notifications_updated";
 const INITIAL_NOTIFICATIONS = [
   {
     id: "notif-1",
-    title: "Welcome to ConfeBook",
-    message: "Meeting room management and scheduling system is fully initialized and operational.",
-    time: "Recently",
+    title: "Welcome to SpaceSync",
+    message: "Workspace and room reservation system is fully initialized and operational.",
     timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-    read: false,
+    readBy: [],
     type: "booking",
+    targetRoles: ["*"],
   },
   {
     id: "notif-2",
     title: "Operational Status Notice",
-    message: "Conference facilities are available for reservations according to facility scheduling policies.",
-    time: "Today",
+    message: "Rooms and collaborative facilities are available for reservations according to scheduling policies.",
     timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-    read: true,
+    readBy: [],
     type: "maintenance",
+    targetRoles: ["*"],
   },
 ];
 
@@ -45,7 +48,7 @@ export function getRelativeTime(timestamp) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function getNotifications() {
+function getStoredNotifications() {
   const saved = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
   if (!saved) {
     localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(INITIAL_NOTIFICATIONS));
@@ -55,69 +58,264 @@ export function getNotifications() {
   try {
     const parsed = JSON.parse(saved);
     if (!Array.isArray(parsed)) return [];
-    return parsed.map((n) => ({
-      ...n,
-      time: getRelativeTime(n.timestamp),
-    }));
-  } catch (err) {
-    console.error("Failed to parse notifications from storage:", err);
+    return parsed;
+  } catch {
     return [];
   }
 }
 
-export function getUnreadCount() {
-  const notifications = getNotifications();
-  return notifications.filter((n) => !n.read).length;
+function getUserIdentifier(user) {
+  if (!user) return null;
+  return user.email ? user.email.toLowerCase() : user.id ? String(user.id) : null;
 }
 
-export function addNotification({ title, message, type = "booking" }) {
-  const current = getNotifications();
+/**
+ * Determines whether a notification is relevant to the given user.
+ */
+export function isNotificationForUser(n, user) {
+  if (!user) return false;
+
+  const userKey = getUserIdentifier(user);
+  const dismissedBy = Array.isArray(n.dismissedBy) ? n.dismissedBy : [];
+  if (userKey && dismissedBy.includes(userKey)) {
+    return false;
+  }
+
+  const userEmail = (user.email || "").toLowerCase();
+  const userRole = (user.role || "Employee").toLowerCase();
+  const userId = user.id ? String(user.id) : "";
+
+  // 1. Explicit user target by ID
+  if (n.targetUserId && String(n.targetUserId) === userId) {
+    return true;
+  }
+
+  // 2. Explicit user target by Email
+  if (n.targetEmail && n.targetEmail.toLowerCase() === userEmail) {
+    return true;
+  }
+
+  // 3. Target roles check
+  if (n.targetRoles && Array.isArray(n.targetRoles) && n.targetRoles.length > 0) {
+    const matchesRole = n.targetRoles.some((role) => {
+      const r = role.toLowerCase();
+      return r === "*" || r === "all" || r === userRole;
+    });
+    if (matchesRole) return true;
+  }
+
+  // 4. Default: If no specific user or role is targeted, it's a broadcast for all
+  if (!n.targetUserId && !n.targetEmail && (!n.targetRoles || n.targetRoles.length === 0)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Synchronously retrieves notifications visible to the given user from cache.
+ */
+export function getNotifications(user) {
+  const all = getStoredNotifications();
+  const userKey = getUserIdentifier(user);
+
+  if (!user) return [];
+
+  return all
+    .filter((n) => isNotificationForUser(n, user))
+    .map((n) => {
+      const readBy = Array.isArray(n.readBy) ? n.readBy : [];
+      const isRead = userKey ? (readBy.includes(userKey) || Boolean(n.isRead)) : !!n.read;
+
+      return {
+        ...n,
+        read: isRead,
+        time: getRelativeTime(n.timestamp),
+      };
+    });
+}
+
+/**
+ * Asynchronously fetch latest notifications from PostgreSQL.
+ */
+export async function fetchNotifications(user) {
+  if (!user) return [];
+
+  try {
+    const response = await api.get("/notifications");
+    if (response.data && Array.isArray(response.data)) {
+      const userKey = getUserIdentifier(user);
+      const serverNotifs = response.data.map((n) => ({
+        ...n,
+        readBy: n.isRead && userKey ? [userKey] : [],
+      }));
+
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(serverNotifs));
+      window.dispatchEvent(
+        new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: serverNotifs })
+      );
+      return getNotifications(user);
+    }
+  } catch (err) {
+    console.warn("Backend /notifications unavailable, using cached notifications:", err.message);
+  }
+
+  return getNotifications(user);
+}
+
+/**
+ * Returns the unread notification count for the current user.
+ */
+export function getUnreadCount(user) {
+  if (!user) return 0;
+  const userNotifs = getNotifications(user);
+  return userNotifs.filter((n) => !n.read).length;
+}
+
+/**
+ * Dispatches a new notification with server persistence and local fallback.
+ */
+export function addNotification({
+  title,
+  message,
+  type = "booking",
+  targetUserId = null,
+  targetEmail = null,
+  targetRoles = ["*"],
+}) {
+  const current = getStoredNotifications();
   const now = new Date();
 
-  const newNotification = {
-    id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+  const localNotif = {
+    id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
     title,
     message,
     type,
-    read: false,
+    targetUserId: targetUserId ? String(targetUserId) : null,
+    targetEmail: targetEmail ? targetEmail.toLowerCase() : null,
+    targetRoles: Array.isArray(targetRoles) ? targetRoles : [targetRoles],
+    readBy: [],
     timestamp: now.toISOString(),
-    time: "Just now",
   };
 
-  const updated = [newNotification, ...current].slice(0, 100);
+  const updated = [localNotif, ...current].slice(0, 150);
   localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
 
-  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: newNotification }));
-  return newNotification;
+  window.dispatchEvent(
+    new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: localNotif })
+  );
+
+  // Asynchronously send to PostgreSQL backend
+  api.post("/notifications", {
+    title,
+    message,
+    type,
+    targetUserId,
+    targetEmail,
+    targetRoles: Array.isArray(targetRoles) ? targetRoles : [targetRoles],
+  }).catch((err) => {
+    console.warn("Could not persist notification to backend:", err.message);
+  });
+
+  return localNotif;
 }
 
-export function markAsRead(id) {
-  const current = getNotifications();
-  const updated = current.map((n) => (String(n.id) === String(id) ? { ...n, read: true } : n));
+/**
+ * Marks a notification as read for the current user.
+ */
+export function markAsRead(id, user) {
+  return toggleNotificationRead(id, user);
+}
+
+/**
+ * Toggles a notification's read state for the current user.
+ */
+export function toggleNotificationRead(id, user) {
+  const current = getStoredNotifications();
+  const userKey = getUserIdentifier(user);
+  if (!userKey) return current;
+
+  const updated = current.map((n) => {
+    if (String(n.id) === String(id)) {
+      let readBy = Array.isArray(n.readBy) ? [...n.readBy] : [];
+      if (readBy.includes(userKey)) {
+        readBy = readBy.filter((k) => k !== userKey);
+      } else {
+        readBy.push(userKey);
+      }
+      return { ...n, readBy };
+    }
+    return n;
+  });
+
   localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
-  return updated;
+
+  // Asynchronously sync with PostgreSQL
+  api.post(`/notifications/${id}/read`).catch((err) => {
+    console.warn("Could not sync notification read status to backend:", err.message);
+  });
+
+  return getNotifications(user);
 }
 
-export function toggleNotificationRead(id) {
-  const current = getNotifications();
-  const updated = current.map((n) => (String(n.id) === String(id) ? { ...n, read: !n.read } : n));
+/**
+ * Marks all notifications visible to the current user as read.
+ */
+export function markAllAsRead(user) {
+  const current = getStoredNotifications();
+  const userKey = getUserIdentifier(user);
+  if (!userKey) return current;
+
+  const updated = current.map((n) => {
+    if (isNotificationForUser(n, user)) {
+      const readBy = Array.isArray(n.readBy) ? [...n.readBy] : [];
+      if (!readBy.includes(userKey)) {
+        readBy.push(userKey);
+      }
+      return { ...n, readBy };
+    }
+    return n;
+  });
+
   localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
-  return updated;
+
+  // Asynchronously sync with backend
+  api.post("/notifications/read-all").catch((err) => {
+    console.warn("Could not sync read-all to backend:", err.message);
+  });
+
+  return getNotifications(user);
 }
 
-export function markAllAsRead() {
-  const current = getNotifications();
-  const updated = current.map((n) => ({ ...n, read: true }));
+/**
+ * Clears notifications for the current user.
+ */
+export function clearAllNotifications(user) {
+  const current = getStoredNotifications();
+  const userKey = getUserIdentifier(user);
+  if (!userKey) return [];
+
+  const updated = current
+    .filter((n) => {
+      const isOnlyForThisUser =
+        (n.targetUserId && String(n.targetUserId) === String(user.id)) ||
+        (n.targetEmail && n.targetEmail.toLowerCase() === user.email?.toLowerCase());
+      return !isOnlyForThisUser;
+    })
+    .map((n) => {
+      if (isNotificationForUser(n, user)) {
+        const dismissedBy = Array.isArray(n.dismissedBy) ? [...n.dismissedBy] : [];
+        if (!dismissedBy.includes(userKey)) {
+          dismissedBy.push(userKey);
+        }
+        return { ...n, dismissedBy };
+      }
+      return n;
+    });
+
   localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
-  return updated;
-}
-
-export function clearAllNotifications() {
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify([]));
-  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: [] }));
   return [];
 }
-

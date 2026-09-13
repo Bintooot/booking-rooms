@@ -50,9 +50,11 @@ export function normalizeBooking(b, fallback = {}) {
     start_time: startTime,
     end_time: endTime,
     color,
-    room_name: b.room_name || fallback.room_name || "Conference Room",
+    room_name: b.room_name || fallback.room_name || "Room / Space",
     raw_start_time: b.raw_start_time || b.start_time,
     raw_end_time: b.raw_end_time || b.end_time,
+    check_in_time: b.check_in_time || null,
+    check_out_time: b.check_out_time || null,
   };
 }
 
@@ -169,3 +171,14 @@ export async function deleteBooking(id) {
   saveLocalBookings(updated);
   return { success: true, id };
 }
+
+export async function checkInBooking(id) {
+  const check_in_time = new Date().toISOString();
+  return updateBookingStatus(id, { check_in_time });
+}
+
+export async function checkOutBooking(id) {
+  const check_out_time = new Date().toISOString();
+  return updateBookingStatus(id, { check_out_time });
+}
+

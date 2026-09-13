@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../components/Toast.jsx";
 import {
   Bell,
@@ -9,45 +10,61 @@ import {
   UserPlus,
   Trash2,
   Check,
+  ShieldAlert,
 } from "lucide-react";
 import {
   getNotifications,
+  fetchNotifications,
   markAllAsRead as apiMarkAllRead,
-  clearAllNotifications,
-  toggleNotificationRead,
+  clearAllNotifications as apiClearAll,
+  toggleNotificationRead as apiToggleRead,
   NOTIFICATIONS_UPDATED_EVENT,
 } from "../../services/notificationService.js";
 
 function Notifications() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { showToast } = useToast();
-  const [notifications, setNotifications] = useState(() => getNotifications());
+  const [notifications, setNotifications] = useState(() => getNotifications(user));
   const [filter, setFilter] = useState("all");
+
+  const refreshNotifs = useCallback(() => {
+    setNotifications(getNotifications(user));
+  }, [user]);
+
+  useEffect(() => {
+    refreshNotifs();
+    if (user) {
+      fetchNotifications(user).then((fresh) => {
+        if (fresh) setNotifications(fresh);
+      });
+    }
+  }, [refreshNotifs, user]);
 
   useEffect(() => {
     const handleUpdate = () => {
-      setNotifications(getNotifications());
+      refreshNotifs();
     };
     window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdate);
     return () => window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdate);
-  }, []);
+  }, [refreshNotifs]);
 
   const markAllAsRead = () => {
-    apiMarkAllRead();
-    setNotifications(getNotifications());
+    apiMarkAllRead(user);
+    refreshNotifs();
     showToast("All notifications marked as read");
   };
 
   const clearAll = () => {
     if (notifications.length === 0) return;
-    clearAllNotifications();
-    setNotifications([]);
-    showToast("All notifications cleared");
+    apiClearAll(user);
+    refreshNotifs();
+    showToast("Notifications cleared");
   };
 
   const toggleRead = (id) => {
-    toggleNotificationRead(id);
-    setNotifications(getNotifications());
+    apiToggleRead(id, user);
+    refreshNotifs();
   };
 
   const filtered = notifications.filter((n) => {
@@ -157,26 +174,40 @@ function Notifications() {
                   ? "bg-blue-500/15 text-blue-500"
                   : item.type === "maintenance"
                     ? "bg-amber-500/15 text-amber-500"
-                    : "bg-purple-500/15 text-purple-500"
+                    : item.type === "security"
+                      ? "bg-rose-500/15 text-rose-500"
+                      : "bg-purple-500/15 text-purple-500"
               }`}
             >
               {item.type === "booking" && <CalendarDays size={18} />}
               {item.type === "maintenance" && <AlertTriangle size={18} />}
+              {item.type === "security" && <ShieldAlert size={18} />}
               {item.type === "user" && <UserPlus size={18} />}
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <h4
-                  className={`text-xs font-bold ${
-                    item.read
-                      ? theme ? "text-gray-300" : "text-slate-700"
-                      : theme ? "text-white" : "text-slate-900"
-                  }`}
-                >
-                  {item.title}
-                </h4>
-                <span className="text-[10px] text-gray-400">{item.time}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <h4
+                    className={`text-xs font-bold ${
+                      item.read
+                        ? theme ? "text-gray-300" : "text-slate-700"
+                        : theme ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    {item.title}
+                  </h4>
+                  {item.targetUserId || item.targetEmail ? (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-semibold border border-blue-500/20">
+                      Personal
+                    </span>
+                  ) : item.targetRoles && !item.targetRoles.includes("*") ? (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500 font-semibold border border-purple-500/20">
+                      {item.targetRoles.join(", ")}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="text-[10px] text-gray-400 shrink-0">{item.time}</span>
               </div>
               <p className="text-xs mt-1 leading-relaxed">{item.message}</p>
             </div>

@@ -18,13 +18,13 @@ import {
 
 function Login() {
   const { theme } = useTheme();
-  const { login, user, isAuthenticated } = useAuth();
+  const { login, logout, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState(() => {
-    return localStorage.getItem("confe_remembered_email") || "admin@company.com";
+    return localStorage.getItem("confe_remembered_email") || "";
   });
-  const [password, setPassword] = useState("password123");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem("confe_remembered_email") !== null;
@@ -58,13 +58,6 @@ function Login() {
     }
   };
 
-  const handleQuickLogin = (roleEmail) => {
-    setEmail(roleEmail);
-    setPassword("password123");
-    login(roleEmail, "password123", rememberMe);
-    navigate("/dashboard");
-  };
-
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div
@@ -91,16 +84,16 @@ function Login() {
                 <DoorOpen size={22} className="text-blue-300" />
               </div>
               <h1 className="text-2xl font-black tracking-tight text-white">
-                Confe<span className="text-blue-300">Book</span>
+                Space<span className="text-blue-300">Sync</span>
               </h1>
             </Link>
 
             <div className="mt-8 space-y-3">
               <h2 className="text-2xl font-bold leading-tight">
-                Modern Conference & Room Reservation
+                Modern Workspace & Room Reservation
               </h2>
               <p className="text-blue-100/75 text-sm leading-relaxed">
-                Streamline meeting schedules, optimize space occupancy, and prevent room double-bookings in real-time.
+                Streamline meeting schedules, optimize workspace occupancy, and prevent room double-bookings in real-time.
               </p>
             </div>
           </div>
@@ -157,7 +150,7 @@ function Login() {
             {/* Active Session Notice */}
             {isAuthenticated && (
               <div
-                className={`mb-6 p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+                className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                   theme
                     ? "bg-blue-950/40 border-blue-800/60 text-blue-300"
                     : "bg-blue-50 border-blue-200 text-blue-800"
@@ -166,13 +159,26 @@ function Login() {
                 <div className="text-xs">
                   <span className="font-bold">Active Session:</span> {user?.name} ({user?.role})
                 </div>
-                <Link
-                  to="/dashboard"
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs"
-                >
-                  <span>Dashboard</span>
-                  <ArrowRight size={12} />
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                      theme
+                        ? "border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
+                        : "border-gray-300 text-gray-600 hover:text-slate-900 hover:bg-white"
+                    }`}
+                  >
+                    Sign Out
+                  </button>
+                  <Link
+                    to="/dashboard"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs"
+                  >
+                    <span>Dashboard</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                </div>
               </div>
             )}
 
@@ -316,41 +322,6 @@ function Login() {
                 )}
               </button>
             </form>
-
-            {/* Quick Demo Access */}
-            <div className="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-slate-700">
-              <p
-                className={`text-[11px] font-semibold uppercase tracking-wider mb-3 text-center ${
-                  theme ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                Quick Demo Sign-In
-              </p>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("admin@company.com")}
-                  className={`px-3 py-2 rounded-lg border text-xs font-medium transition text-center hover:-translate-y-0.5 ${
-                    theme
-                      ? "bg-slate-900/50 border-slate-700 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400"
-                      : "bg-gray-50 border-gray-200 text-blue-600 hover:bg-blue-50 hover:border-blue-200"
-                  }`}
-                >
-                  👑 Admin Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("manager@company.com")}
-                  className={`px-3 py-2 rounded-lg border text-xs font-medium transition text-center hover:-translate-y-0.5 ${
-                    theme
-                      ? "bg-slate-900/50 border-slate-700 text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-400"
-                      : "bg-gray-50 border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200"
-                  }`}
-                >
-                  💼 Manager Demo
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -5,6 +5,8 @@ import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { hasPermission } from "../../utils/permissions.js";
 import { getRooms, updateRoom, deleteRoom as apiDeleteRoom } from "../../api/rooms.js";
+import { getBookings } from "../../api/bookings.js";
+import { getActiveOvertimeBookings } from "../../utils/overtime.js";
 import { useToast } from "../../components/Toast.jsx";
 import { logAuditEvent } from "../../services/auditService.js";
 import { addNotification } from "../../services/notificationService.js";
@@ -25,6 +27,7 @@ import {
   Check,
   LayoutGrid,
   List,
+  AlertTriangle,
 } from "lucide-react";
 
 const AVAILABLE_AMENITIES = [
@@ -34,8 +37,7 @@ const AVAILABLE_AMENITIES = [
   "Whiteboard",
   "Video Conference",
   "Sound System",
-  "Air Conditioning",
-  "Coffee Machine",
+  "Coffee Station",
 ];
 
 function RoomManagement() {
@@ -45,7 +47,16 @@ function RoomManagement() {
   const { showToast } = useToast();
 
   const [rooms, setRooms] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Real-time tick every 30s
+  useEffect(() => {
+    const ticker = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(ticker);
+  }, []);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [openMenu, setOpenMenu] = useState(null);
@@ -72,8 +83,12 @@ function RoomManagement() {
   const loadRooms = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getRooms();
-      setRooms(data || []);
+      const [roomsData, bookingsData] = await Promise.all([
+        getRooms(),
+        getBookings(),
+      ]);
+      setRooms(roomsData || []);
+      setBookings(bookingsData || []);
     } catch {
       showToast("Failed to load rooms", "error");
     } finally {
@@ -84,6 +99,17 @@ function RoomManagement() {
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
+
+  // Overtime Room Map for instant lookup
+  const overtimeRoomMap = useMemo(() => {
+    const active = getActiveOvertimeBookings(bookings, currentTime);
+    const map = {};
+    active.forEach(({ booking, timing }) => {
+      map[String(booking.room_id)] = timing;
+      if (booking.room_name) map[booking.room_name] = timing;
+    });
+    return map;
+  }, [bookings, currentTime]);
 
   const filteredRooms = useMemo(() => {
     return rooms.filter((room) => {
@@ -140,6 +166,7 @@ function RoomManagement() {
         title: `Room Status: ${room.name}`,
         message: `"${room.name}" was marked as ${nextStatus}.`,
         type: "maintenance",
+        targetRoles: ["*"],
       });
 
       showToast(`"${room.name}" marked as ${nextStatus}`);
@@ -170,6 +197,7 @@ function RoomManagement() {
         title: "Room Removed",
         message: `Room "${room.name}" was deleted from the facility list.`,
         type: "maintenance",
+        targetRoles: ["Administrator", "Manager"],
       });
 
       showToast(`Room "${room.name}" deleted successfully`);
@@ -452,13 +480,26 @@ function RoomManagement() {
                     : "bg-linear-to-br from-blue-50 to-slate-100"
                 }`}
               >
-                <span
-                  className={`px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
-                    room.status || (room.is_active === false ? "Maintenance" : "Available"),
-                  )}`}
-                >
-                  {room.status || (room.is_active === false ? "Maintenance" : "Available")}
-                </span>
+                {(() => {
+                  const overtimeTiming = overtimeRoomMap[String(room.id)] || overtimeRoomMap[room.name];
+                  if (overtimeTiming) {
+                    return (
+                      <span className="px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-black animate-pulse flex items-center gap-1">
+                        <AlertTriangle size={11} />
+                        Overtime (+{overtimeTiming.overtimeMinutes}m)
+                      </span>
+                    );
+                  }
+                  return (
+                    <span
+                      className={`px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                        room.status || (room.is_active === false ? "Maintenance" : "Available"),
+                      )}`}
+                    >
+                      {room.status || (room.is_active === false ? "Maintenance" : "Available")}
+                    </span>
+                  );
+                })()}
 
                 {/* Dropdown Menu */}
                 <div className="relative">
@@ -789,13 +830,26 @@ function RoomManagement() {
 
                       {/* Status */}
                       <td className="py-4 px-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
-                            roomStatus
-                          )}`}
-                        >
-                          {roomStatus}
-                        </span>
+                        {(() => {
+                          const overtimeTiming = overtimeRoomMap[String(room.id)] || overtimeRoomMap[room.name];
+                          if (overtimeTiming) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-black animate-pulse">
+                                <AlertTriangle size={11} />
+                                Overtime (+{overtimeTiming.overtimeMinutes}m)
+                              </span>
+                            );
+                          }
+                          return (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                                roomStatus
+                              )}`}
+                            >
+                              {roomStatus}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* Actions */}

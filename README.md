@@ -1,4 +1,4 @@
-# 🏢 Conference Room Booking System (Docker Edition)
+# 🏢 SpaceSync — Modern Room & Workspace Reservation System (Docker Edition)
 
 A modern, full-stack enterprise Room Reservation & Workspace Management platform built with **React 19**, **Express.js**, and **PostgreSQL**, fully containerized with **Docker Compose** for one-command deployment.
 

@@ -2,9 +2,13 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import pool from "./config/db.js";
+import { initDb } from "./config/initDb.js";
 import roomRoutes from "./routes/rooms.routes.js";
 import userRoutes from "./routes/users.routes.js";
 import bookingRoutes from "./routes/bookings.routes.js";
+import auditRoutes from "./routes/audit.routes.js";
+import notificationRoutes from "./routes/notifications.routes.js";
+import settingRoutes from "./routes/settings.routes.js";
 
 dotenv.config();
 
@@ -12,7 +16,15 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman or server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow any localhost / 127.0.0.1 port (5173, 5174, 80, 3000, etc.)
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -41,6 +53,9 @@ app.get("/api/health", async (req, res) => {
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/audit-logs", auditRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/settings", settingRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -55,8 +70,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  // Run idempotent database migrations
+  await initDb();
 });
 
 export default app;

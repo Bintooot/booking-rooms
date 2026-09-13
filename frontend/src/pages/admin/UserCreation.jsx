@@ -84,6 +84,7 @@ function UserCreation() {
         title: "New Team Member Added",
         message: `${formData.name} was registered as ${formData.role || "Employee"}.`,
         type: "user",
+        targetRoles: ["Administrator"],
       });
 
       await loadUsers();

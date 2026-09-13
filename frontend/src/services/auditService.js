@@ -1,7 +1,10 @@
 /**
  * Audit Logging Service
  * Standardized service for recording security and administrative events.
+ * Persists to PostgreSQL via /api/audit-logs with robust local cache fallback.
  */
+
+import { api } from "../api/client.js";
 
 const AUDIT_STORAGE_KEY = "confe_audit_logs";
 export const AUDIT_UPDATED_EVENT = "confe_audit_logs_updated";
@@ -71,12 +74,11 @@ export function formatAuditDisplayTime(date) {
 }
 
 /**
- * Retrieve current audit logs from storage.
+ * Retrieve current audit logs synchronously from storage cache.
  */
 export function getAuditLogs() {
   const saved = localStorage.getItem(AUDIT_STORAGE_KEY);
   if (!saved) {
-    // Seed initial logs
     localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(INITIAL_LOGS));
     return [...INITIAL_LOGS];
   }
@@ -91,20 +93,30 @@ export function getAuditLogs() {
 }
 
 /**
- * Record a new audit log event.
- * 
- * @param {Object} event
- * @param {string} event.action - e.g. "Booking Created", "Room Deleted", "Login"
- * @param {string} event.actor - e.g. "Administrator", or user's name
- * @param {string} event.target - e.g. "Conference Room A", "Meeting"
- * @param {'room'|'booking'|'user'|'auth'|'settings'} event.type - Categorical type
- * @param {string} [event.ip] - IP address or default '127.0.0.1'
+ * Asynchronously fetch latest audit logs from PostgreSQL backend.
  */
-export function logAuditEvent({ action, actor = "System", target = "N/A", type = "system", ip = "127.0.0.1" }) {
+export async function fetchAuditLogs(options = {}) {
+  try {
+    const response = await api.get("/audit-logs", { params: options });
+    if (response.data && Array.isArray(response.data)) {
+      localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(response.data));
+      window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: response.data }));
+      return response.data;
+    }
+  } catch (err) {
+    console.warn("Backend /audit-logs unavailable, falling back to local cache:", err.message);
+  }
+  return getAuditLogs();
+}
+
+/**
+ * Record a new audit log event to PostgreSQL with local fallback.
+ */
+export function logAuditEvent({ action, actor = "System", target = "N/A", type = "system", ip = "127.0.0.1", user_id = null }) {
   const currentLogs = getAuditLogs();
   const now = new Date();
 
-  const newLog = {
+  const localLog = {
     id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
     action,
     actor: actor || "System",
@@ -115,19 +127,37 @@ export function logAuditEvent({ action, actor = "System", target = "N/A", type =
     type: type || "system",
   };
 
-  const updatedLogs = [newLog, ...currentLogs].slice(0, 200); // Cap at 200 entries to prevent storage bloat
+  const updatedLogs = [localLog, ...currentLogs].slice(0, 200);
   localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(updatedLogs));
+  window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: localLog }));
 
-  window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: newLog }));
-  return newLog;
+  // Asynchronously persist to PostgreSQL
+  api.post("/audit-logs", {
+    action,
+    actor: actor || "System",
+    target,
+    type: type || "system",
+    ip: ip || "127.0.0.1",
+    user_id,
+  }).catch((err) => {
+    console.warn("Could not persist audit log to backend:", err.message);
+  });
+
+  return localLog;
 }
 
 /**
- * Clear all audit logs.
+ * Clear all audit logs on server and local cache.
  */
-export function clearAuditLogs() {
+export async function clearAuditLogs() {
   localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify([]));
   window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: [] }));
+
+  try {
+    await api.delete("/audit-logs");
+  } catch (err) {
+    console.warn("Failed to clear audit logs on backend:", err.message);
+  }
 }
 
 /**
@@ -145,9 +175,8 @@ export function exportAuditLogsCSV() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `confe_audit_trail_${new Date().toISOString().split("T")[0]}.csv`);
+  link.setAttribute("download", `spacesync_audit_trail_${new Date().toISOString().split("T")[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
-
