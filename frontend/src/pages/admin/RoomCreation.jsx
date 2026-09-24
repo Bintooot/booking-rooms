@@ -131,10 +131,10 @@ function RoomCreation() {
     }
   };
 
-  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition ${
+  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -145,7 +145,7 @@ function RoomCreation() {
       <div className="mt-6 mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -163,7 +163,7 @@ function RoomCreation() {
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
         >
           <Plus size={16} />
           Create New Room
@@ -173,7 +173,7 @@ function RoomCreation() {
       {/* Floor grid */}
       <section
         className={`relative rounded-3xl border p-6 overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {/* Decorative architectural grid background */}
@@ -195,10 +195,10 @@ function RoomCreation() {
             {rooms.map((room) => (
               <div
                 key={room.id}
-                className={`relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                className={`relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
                   theme
                     ? "bg-slate-900/90 border-slate-700 hover:border-blue-500/50"
-                    : "bg-gray-50/80 border-gray-200 hover:border-blue-300"
+                    : "bg-white border-slate-200 shadow-xs hover:border-blue-300"
                 } ${
                   room.size === "large" || room.capacity > 15
                     ? "lg:row-span-2"
@@ -208,7 +208,7 @@ function RoomCreation() {
                 {/* Room doorway indicator accent */}
                 <div
                   className={`absolute top-0 right-6 w-8 h-1 rounded-b ${
-                    theme ? "bg-slate-600" : "bg-gray-300"
+                    theme ? "bg-slate-600" : "bg-slate-300"
                   }`}
                 />
 
@@ -226,7 +226,7 @@ function RoomCreation() {
                       </div>
 
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                           room.status === "Occupied"
                             ? theme
                               ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
@@ -245,7 +245,7 @@ function RoomCreation() {
                     </div>
 
                     <h3
-                      className={`font-bold text-sm mt-4 ${
+                      className={`font-semibold text-sm mt-4 ${
                         theme ? "text-white" : "text-slate-900"
                       }`}
                     >
@@ -254,7 +254,7 @@ function RoomCreation() {
 
                     <p
                       className={`text-xs mt-0.5 ${
-                        theme ? "text-gray-400" : "text-gray-500"
+                        theme ? "text-gray-400" : "text-slate-500"
                       }`}
                     >
                       {room.type || "Meeting Space"}
@@ -269,16 +269,16 @@ function RoomCreation() {
                   </div>
 
                   <div
-                    className={`flex items-center justify-between pt-4 mt-4 border-t border-gray-200/50 dark:border-slate-800 text-xs ${
-                      theme ? "text-gray-400" : "text-gray-500"
+                    className={`flex items-center justify-between pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-xs ${
+                      theme ? "text-gray-400" : "text-slate-500"
                     }`}
                   >
-                    <span className="flex items-center gap-1.5 font-medium">
+                    <span className="flex items-center gap-1.5 font-normal">
                       <Users size={13} />
                       {room.capacity} seats
                     </span>
 
-                    <span className="text-[10px] uppercase tracking-wider font-semibold opacity-75">
+                    <span className="text-[10px] uppercase tracking-wider font-normal opacity-75">
                       {room.size || "medium"}
                     </span>
                   </div>
@@ -290,10 +290,10 @@ function RoomCreation() {
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className={`group relative rounded-2xl border-2 border-dashed p-6 flex flex-col items-center justify-center transition-all duration-300 min-h-60 hover:-translate-y-1 ${
+              className={`group relative rounded-2xl border-2 border-dashed p-6 flex flex-col items-center justify-center transition-all duration-300 min-h-60 hover:-translate-y-1 cursor-pointer ${
                 theme
                   ? "border-slate-700 hover:border-blue-400 hover:bg-blue-500/5"
-                  : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/40"
+                  : "border-slate-300 hover:border-blue-400 hover:bg-blue-50/40"
               }`}
             >
               <div
@@ -307,7 +307,7 @@ function RoomCreation() {
               </div>
 
               <h3
-                className={`mt-4 text-sm font-bold ${
+                className={`mt-4 text-sm font-semibold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -316,7 +316,7 @@ function RoomCreation() {
 
               <p
                 className={`text-xs mt-1 text-center max-w-xs ${
-                  theme ? "text-gray-400" : "text-gray-500"
+                  theme ? "text-gray-400" : "text-slate-500"
                 }`}
               >
                 Click here to add another room to this floor layout
@@ -348,13 +348,13 @@ function RoomCreation() {
             className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                : "bg-white border border-slate-200"
             }`}
           >
             {/* Modal header */}
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-700" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -369,7 +369,7 @@ function RoomCreation() {
                 </div>
                 <div>
                   <h2
-                    className={`text-base font-bold ${
+                    className={`text-base font-semibold ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
@@ -377,7 +377,7 @@ function RoomCreation() {
                   </h2>
                   <p
                     className={`text-xs mt-0.5 ${
-                      theme ? "text-gray-400" : "text-gray-500"
+                      theme ? "text-gray-400" : "text-slate-500"
                     }`}
                   >
                     Set specifications, capacity, and equipment.
@@ -391,7 +391,7 @@ function RoomCreation() {
                 className={`p-2 rounded-lg transition ${
                   theme
                     ? "text-gray-400 hover:text-white hover:bg-slate-700"
-                    : "text-gray-400 hover:text-slate-900 hover:bg-gray-100"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 <X size={18} />
@@ -404,7 +404,7 @@ function RoomCreation() {
                 {/* Room Name */}
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -414,7 +414,7 @@ function RoomCreation() {
                     <House
                       size={16}
                       className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                        theme ? "text-gray-500" : "text-gray-400"
+                        theme ? "text-gray-500" : "text-slate-400"
                       }`}
                     />
                     <input
@@ -432,7 +432,7 @@ function RoomCreation() {
                 {/* Room Type */}
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -457,7 +457,7 @@ function RoomCreation() {
                 {/* Capacity */}
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -467,7 +467,7 @@ function RoomCreation() {
                     <Users
                       size={16}
                       className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                        theme ? "text-gray-500" : "text-gray-400"
+                        theme ? "text-gray-500" : "text-slate-400"
                       }`}
                     />
                     <input
@@ -486,7 +486,7 @@ function RoomCreation() {
                 {/* Location */}
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -496,7 +496,7 @@ function RoomCreation() {
                     <MapPin
                       size={16}
                       className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                        theme ? "text-gray-500" : "text-gray-400"
+                        theme ? "text-gray-500" : "text-slate-400"
                       }`}
                     />
                     <input
@@ -515,7 +515,7 @@ function RoomCreation() {
               {/* Description */}
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -524,7 +524,7 @@ function RoomCreation() {
                 <div className="relative">
                   <FileText
                     size={16}
-                    className="absolute left-3.5 top-3 text-gray-400"
+                    className="absolute left-3.5 top-3 text-slate-400"
                   />
                   <textarea
                     name="description"
@@ -540,7 +540,7 @@ function RoomCreation() {
               {/* Amenities */}
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-2 ${
+                  className={`block text-xs font-medium mb-2 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -559,7 +559,7 @@ function RoomCreation() {
                             ? "bg-blue-600 text-white border-blue-600"
                             : theme
                               ? "bg-slate-900 border-slate-700 text-gray-300 hover:border-slate-500"
-                              : "bg-gray-50 border-gray-200 text-slate-700 hover:border-gray-300"
+                              : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
                         }`}
                       >
                         {isSelected && <Check size={12} />}
@@ -573,16 +573,16 @@ function RoomCreation() {
               {/* Actions */}
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-700" : "border-slate-100"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -591,7 +591,7 @@ function RoomCreation() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm disabled:opacity-50"
                 >
                   {submitting ? "Creating..." : "Save & Provision"}
                 </button>

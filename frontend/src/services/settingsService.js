@@ -6,7 +6,6 @@
 
 import { api } from "../api/client.js";
 
-const SETTINGS_STORAGE_KEY = "confe_settings";
 export const SETTINGS_UPDATED_EVENT = "confe_settings_updated";
 
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -20,26 +19,13 @@ export const DEFAULT_SETTINGS = Object.freeze({
   conflictStrict: true, // if true, strictly block overlapping reservations
 });
 
+let memorySettings = { ...DEFAULT_SETTINGS };
+
 /**
- * Synchronously retrieve current settings from cache, falling back to defaults.
+ * Synchronously retrieve current settings from memory cache.
  */
 export function getSettings() {
-  const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
-  if (!saved) return { ...DEFAULT_SETTINGS };
-
-  try {
-    const parsed = JSON.parse(saved);
-    return {
-      ...DEFAULT_SETTINGS,
-      ...parsed,
-      maxBookingDays: Number(parsed.maxBookingDays) || DEFAULT_SETTINGS.maxBookingDays,
-      maxDurationHours: Number(parsed.maxDurationHours) || DEFAULT_SETTINGS.maxDurationHours,
-      bufferMinutes: Number(parsed.bufferMinutes) || DEFAULT_SETTINGS.bufferMinutes,
-    };
-  } catch (err) {
-    console.error("Failed to parse settings from storage:", err);
-    return { ...DEFAULT_SETTINGS };
-  }
+  return { ...memorySettings };
 }
 
 /**
@@ -56,18 +42,18 @@ export async function fetchSettings() {
         maxDurationHours: Number(response.data.maxDurationHours) || DEFAULT_SETTINGS.maxDurationHours,
         bufferMinutes: Number(response.data.bufferMinutes) || DEFAULT_SETTINGS.bufferMinutes,
       };
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
+      memorySettings = normalized;
       window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
       return normalized;
     }
   } catch (err) {
-    console.warn("Backend /settings unavailable, using cached settings:", err.message);
+    console.warn("Backend /settings unavailable, using memory settings:", err.message);
   }
   return getSettings();
 }
 
 /**
- * Persist updated settings to PostgreSQL and local cache, broadcasting update event.
+ * Persist updated settings to PostgreSQL and memory cache, broadcasting update event.
  */
 export function saveSettings(newSettings) {
   const normalized = {
@@ -78,7 +64,7 @@ export function saveSettings(newSettings) {
     bufferMinutes: Number(newSettings.bufferMinutes) || DEFAULT_SETTINGS.bufferMinutes,
   };
 
-  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
+  memorySettings = normalized;
   window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
 
   // Asynchronously persist to PostgreSQL

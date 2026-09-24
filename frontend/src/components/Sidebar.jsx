@@ -182,11 +182,11 @@ function Sidebar({ theme }) {
         }`}
       >
         <Link to="/dashboard" className={`${isCollapsed ? "hidden" : "flex items-center gap-2"}`}>
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-medium">
             <DoorOpen size={18} />
           </div>
           <h1
-            className={`text-xl font-black tracking-tight ${
+            className={`text-xl font-bold tracking-tight ${
               theme ? "text-white" : "text-blue-950"
             }`}
           >
@@ -221,7 +221,7 @@ function Sidebar({ theme }) {
             <div key={section.title}>
               {!isCollapsed && (
                 <p
-                  className={`px-2 mb-1.5 text-[10px] font-bold uppercase tracking-widest ${
+                  className={`px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-widest ${
                     theme ? "text-gray-500" : "text-gray-400"
                   }`}
                 >
@@ -277,10 +277,10 @@ function Sidebar({ theme }) {
 
                         {!isCollapsed && item.path === "/notifications" && unreadCount > 0 && (
                           <span
-                            className={`ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            className={`ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
                               isActive
-                                ? "bg-white text-blue-600"
-                                : "bg-blue-600 text-white"
+                                 ? "bg-white text-blue-600"
+                                 : "bg-blue-600 text-white"
                             }`}
                           >
                             {unreadCount}
@@ -306,7 +306,7 @@ function Sidebar({ theme }) {
           <div className="flex flex-col items-center gap-2">
             <div
               title={user?.name || "Administrator"}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-medium ${
                 theme
                   ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
                   : "bg-blue-100 text-blue-700 border border-blue-200"
@@ -331,7 +331,7 @@ function Sidebar({ theme }) {
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-medium shrink-0 ${
                   theme
                     ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
                     : "bg-blue-100 text-blue-700 border border-blue-200"
@@ -342,7 +342,7 @@ function Sidebar({ theme }) {
 
               <div className="min-w-0">
                 <p
-                  className={`text-xs font-semibold truncate ${
+                  className={`text-xs font-medium truncate ${
                     theme ? "text-white" : "text-slate-900"
                   }`}
                 >

@@ -112,7 +112,7 @@ function Settings() {
   const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -121,7 +121,7 @@ function Settings() {
 
       <div className="mt-6">
         <h2
-          className={`text-lg font-bold ${
+          className={`text-lg font-semibold ${
             theme ? "text-white" : "text-slate-900"
           }`}
         >
@@ -140,13 +140,13 @@ function Settings() {
         {/* Organization Information */}
         <section
           className={`rounded-3xl border p-6 ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <Building size={18} className="text-blue-500" />
             <h3
-              className={`text-sm font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -157,7 +157,7 @@ function Settings() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -175,7 +175,7 @@ function Settings() {
 
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -196,13 +196,13 @@ function Settings() {
         {/* Booking Constraints */}
         <section
           className={`rounded-3xl border p-6 ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <Clock size={18} className="text-blue-500" />
             <h3
-              className={`text-sm font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -213,7 +213,7 @@ function Settings() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -231,7 +231,7 @@ function Settings() {
 
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -249,7 +249,7 @@ function Settings() {
 
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -270,13 +270,13 @@ function Settings() {
         {/* System Rules */}
         <section
           className={`rounded-3xl border p-6 ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <Shield size={18} className="text-blue-500" />
             <h3
-              className={`text-sm font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -294,7 +294,7 @@ function Settings() {
                 className="w-4 h-4 rounded text-blue-600"
               />
               <span
-                className={`text-xs font-medium ${
+                className={`text-xs font-normal ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -311,7 +311,7 @@ function Settings() {
                 className="w-4 h-4 rounded text-blue-600"
               />
               <span
-                className={`text-xs font-medium ${
+                className={`text-xs font-normal ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -323,7 +323,7 @@ function Settings() {
 
         <button
           type="submit"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition cursor-pointer"
         >
           <Save size={16} /> Save Configuration
         </button>
@@ -332,7 +332,7 @@ function Settings() {
       {/* Account Security & Password Change */}
       <div className="mt-12 max-w-3xl">
         <h2
-          className={`text-lg font-bold ${
+          className={`text-lg font-semibold ${
             theme ? "text-white" : "text-slate-900"
           }`}
         >
@@ -348,13 +348,13 @@ function Settings() {
 
         <section
           className={`mt-4 rounded-3xl border p-6 ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <KeyRound size={18} className="text-amber-500" />
             <h3
-              className={`text-sm font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -365,7 +365,7 @@ function Settings() {
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
               <label
-                className={`block text-xs font-semibold mb-1.5 ${
+                className={`block text-xs font-medium mb-1.5 ${
                   theme ? "text-gray-300" : "text-slate-700"
                 }`}
               >
@@ -374,7 +374,7 @@ function Settings() {
               <div className="relative">
                 <Lock
                   size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 <input
                   type={showPassword ? "text" : "password"}
@@ -385,13 +385,13 @@ function Settings() {
                   className={`w-full rounded-xl border pl-10 pr-10 py-2.5 text-xs outline-none transition ${
                     theme
                       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-amber-400"
-                      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-amber-500"
+                      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-amber-500"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -401,7 +401,7 @@ function Settings() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -410,7 +410,7 @@ function Settings() {
                 <div className="relative">
                   <Lock
                     size={15}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -422,7 +422,7 @@ function Settings() {
                     className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-xs outline-none transition ${
                       theme
                         ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-amber-400"
-                        : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-amber-500"
+                        : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-amber-500"
                     }`}
                   />
                 </div>
@@ -430,7 +430,7 @@ function Settings() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -439,7 +439,7 @@ function Settings() {
                 <div className="relative">
                   <Lock
                     size={15}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -451,7 +451,7 @@ function Settings() {
                     className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-xs outline-none transition ${
                       theme
                         ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-amber-400"
-                        : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-amber-500"
+                        : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-amber-500"
                     }`}
                   />
                 </div>
@@ -462,7 +462,7 @@ function Settings() {
               <button
                 type="submit"
                 disabled={passwordLoading}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-md transition disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium shadow-sm transition disabled:opacity-50 cursor-pointer"
               >
                 <KeyRound size={15} />
                 <span>{passwordLoading ? "Updating..." : "Update Password"}</span>

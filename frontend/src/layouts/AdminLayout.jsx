@@ -7,12 +7,12 @@ function AdminLayout() {
   const { theme } = useTheme();
 
   return (
-    <main className="bg-gray-100/50 flex h-screen relative">
+    <main className={`flex h-screen relative ${theme ? "bg-slate-950" : "bg-slate-50"}`}>
       <div className="h-full">
         <Sidebar theme={theme} />
       </div>
       <div
-        className={`flex-1 overflow-auto scrollbar-hide h-screen p-5 ${theme ? "bg-slate-900" : "bg-white"}`}
+        className={`flex-1 overflow-auto scrollbar-hide h-screen p-5 ${theme ? "bg-slate-900" : "bg-slate-50"}`}
       >
         <Outlet />
         <Theme />

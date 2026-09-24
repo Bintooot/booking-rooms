@@ -61,8 +61,8 @@ function Login() {
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div
-        className={`w-full max-w-4xl rounded-3xl border shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all duration-300 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+        className={`w-full max-w-4xl rounded-3xl border shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all duration-300 ${
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
         }`}
       >
         {/* Left column / Hero brand panel */}
@@ -83,13 +83,13 @@ function Login() {
               <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/20 transition">
                 <DoorOpen size={22} className="text-blue-300" />
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
                 Space<span className="text-blue-300">Sync</span>
               </h1>
             </Link>
 
             <div className="mt-8 space-y-3">
-              <h2 className="text-2xl font-bold leading-tight">
+              <h2 className="text-2xl font-semibold leading-tight">
                 Modern Workspace & Room Reservation
               </h2>
               <p className="text-blue-100/75 text-sm leading-relaxed">
@@ -138,7 +138,7 @@ function Login() {
             <div className="mb-6">
               <Link
                 to="/"
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 text-xs font-medium transition ${
                   theme ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-blue-600"
                 }`}
               >
@@ -157,23 +157,23 @@ function Login() {
                 }`}
               >
                 <div className="text-xs">
-                  <span className="font-bold">Active Session:</span> {user?.name} ({user?.role})
+                  <span className="font-medium">Active Session:</span> {user?.name} ({user?.role})
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={logout}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                       theme
                         ? "border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
-                        : "border-gray-300 text-gray-600 hover:text-slate-900 hover:bg-white"
+                        : "border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-white"
                     }`}
                   >
                     Sign Out
                   </button>
                   <Link
                     to="/dashboard"
-                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs"
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1 transition shadow-xs"
                   >
                     <span>Dashboard</span>
                     <ArrowRight size={12} />
@@ -184,7 +184,7 @@ function Login() {
 
             <div>
               <h2
-                className={`text-2xl font-bold tracking-tight ${
+                className={`text-2xl font-semibold tracking-tight ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -192,7 +192,7 @@ function Login() {
               </h2>
               <p
                 className={`text-sm mt-1.5 ${
-                  theme ? "text-gray-400" : "text-gray-500"
+                  theme ? "text-gray-400" : "text-slate-500"
                 }`}
               >
                 Sign in to manage room bookings and team schedules.
@@ -209,7 +209,7 @@ function Login() {
               {/* Email */}
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-2 ${
+                  className={`block text-xs font-medium mb-2 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -219,7 +219,7 @@ function Login() {
                   <Mail
                     size={17}
                     className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                      theme ? "text-gray-500" : "text-gray-400"
+                      theme ? "text-gray-500" : "text-slate-400"
                     }`}
                   />
                   <input
@@ -231,7 +231,7 @@ function Login() {
                     className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none transition ${
                       theme
                         ? "bg-slate-900/80 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10"
-                        : "bg-gray-50/80 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+                        : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                     }`}
                   />
                 </div>
@@ -241,7 +241,7 @@ function Login() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label
-                    className={`text-xs font-semibold ${
+                    className={`text-xs font-medium ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -260,7 +260,7 @@ function Login() {
                   <LockKeyhole
                     size={17}
                     className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                      theme ? "text-gray-500" : "text-gray-400"
+                      theme ? "text-gray-500" : "text-slate-400"
                     }`}
                   />
                   <input
@@ -272,14 +272,14 @@ function Login() {
                     className={`w-full rounded-xl border py-3 pl-11 pr-11 text-sm outline-none transition ${
                       theme
                         ? "bg-slate-900/80 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10"
-                        : "bg-gray-50/80 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+                        : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition ${
-                      theme ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-slate-900"
+                      theme ? "text-gray-400 hover:text-white" : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

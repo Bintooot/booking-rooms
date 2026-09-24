@@ -139,7 +139,7 @@ function Reports() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -158,10 +158,10 @@ function Reports() {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className={`rounded-xl border px-3 py-2 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-3 py-2 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="This Week">This Week</option>
@@ -173,7 +173,7 @@ function Reports() {
           <button
             type="button"
             onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
           >
             <Download size={14} /> Export CSV
           </button>
@@ -230,10 +230,10 @@ function Reports() {
               item.alert
                 ? theme
                   ? "bg-rose-950/20 border-rose-500/40"
-                  : "bg-rose-50/70 border-rose-200"
+                  : "bg-rose-50/70 border-rose-200 shadow-xs"
                 : theme
                   ? "bg-slate-800 border-slate-700"
-                  : "bg-white border-gray-200"
+                  : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -249,7 +249,7 @@ function Reports() {
                 {item.icon}
               </div>
               <span
-                className={`text-2xl font-black ${
+                className={`text-2xl font-bold ${
                   item.alert
                     ? "text-rose-600 dark:text-rose-400"
                     : theme
@@ -261,7 +261,7 @@ function Reports() {
               </span>
             </div>
             <p
-              className={`text-xs mt-3 font-semibold ${
+              className={`text-xs mt-3 font-medium ${
                 theme ? "text-gray-200" : "text-slate-800"
               }`}
             >
@@ -270,10 +270,10 @@ function Reports() {
             <p
               className={`text-[11px] mt-0.5 ${
                 item.alert
-                  ? "text-rose-500 dark:text-rose-400 font-medium"
+                  ? "text-rose-500 dark:text-rose-400 font-normal"
                   : theme
                     ? "text-gray-400"
-                    : "text-gray-500"
+                    : "text-slate-500"
               }`}
             >
               {item.sub}
@@ -285,12 +285,12 @@ function Reports() {
       {/* Detailed Room Breakdown Table */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
           <h3
-            className={`text-sm font-bold ${
+            className={`text-sm font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -305,10 +305,10 @@ function Reports() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr
-                className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                   theme
                     ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                    : "border-gray-200 bg-gray-50 text-gray-500"
+                    : "border-slate-200 bg-slate-50/80 text-slate-600"
                 }`}
               >
                 <th className="py-3.5 px-5">Room Name</th>
@@ -324,30 +324,30 @@ function Reports() {
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
               {roomStats.map((room) => (
                 <tr key={room.name} className="transition hover:bg-blue-500/5">
-                  <td className="py-4 px-5 font-semibold">
+                  <td className="py-4 px-5 font-medium">
                     <span className={theme ? "text-white" : "text-slate-900"}>
                       {room.name}
                     </span>
                   </td>
-                  <td className="py-4 px-3 text-gray-400">{room.location}</td>
-                  <td className="py-4 px-3">{room.capacity} seats</td>
-                  <td className="py-4 px-3 font-bold text-blue-500">{room.bookingCount}</td>
+                  <td className="py-4 px-3 text-slate-400">{room.location}</td>
+                  <td className="py-4 px-3 text-slate-700 dark:text-gray-300">{room.capacity} seats</td>
+                  <td className="py-4 px-3 font-medium text-blue-600 dark:text-blue-400">{room.bookingCount}</td>
                   <td className="py-4 px-3 text-slate-600 dark:text-gray-300">{room.scheduledHours}h</td>
                   <td className="py-4 px-3">
                     {room.overtimeHours > 0 ? (
-                      <span className="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400 font-mono">
+                      <span className="inline-flex items-center gap-1 font-medium text-rose-600 dark:text-rose-400 font-mono">
                         +{room.overtimeHours}h
                       </span>
                     ) : (
-                      <span className="text-gray-400 font-mono">0.0h</span>
+                      <span className="text-slate-400 font-mono">0.0h</span>
                     )}
                   </td>
-                  <td className="py-4 px-3 font-bold">{room.totalHours}h</td>
+                  <td className="py-4 px-3 font-medium text-slate-800 dark:text-gray-200">{room.totalHours}h</td>
                   <td className="py-4 px-5">
                     <div className="flex items-center gap-2">
                       <div
                         className={`flex-1 h-2 rounded-full overflow-hidden ${
-                          theme ? "bg-slate-700" : "bg-gray-100"
+                          theme ? "bg-slate-700" : "bg-slate-100"
                         }`}
                       >
                         <div
@@ -355,7 +355,7 @@ function Reports() {
                           style={{ width: `${Math.max(10, room.utilizationScore)}%` }}
                         />
                       </div>
-                      <span className="text-[11px] font-semibold w-8 text-right">
+                      <span className="text-[11px] font-medium w-8 text-right text-slate-700 dark:text-gray-300">
                         {room.utilizationScore}%
                       </span>
                     </div>

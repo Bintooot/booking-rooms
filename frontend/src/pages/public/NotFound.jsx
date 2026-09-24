@@ -16,7 +16,7 @@ function NotFound() {
       </div>
 
       <h1
-        className={`text-5xl font-black tracking-tight ${
+        className={`text-5xl font-bold tracking-tight ${
           theme ? "text-white" : "text-slate-900"
         }`}
       >
@@ -24,7 +24,7 @@ function NotFound() {
       </h1>
 
       <h2
-        className={`text-lg font-bold mt-2 ${
+        className={`text-lg font-medium mt-2 ${
           theme ? "text-gray-200" : "text-slate-800"
         }`}
       >
@@ -42,7 +42,7 @@ function NotFound() {
       <div className="flex items-center gap-3 mt-6">
         <Link
           to="/dashboard"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-md transition"
         >
           <Home size={15} /> Back to Dashboard
         </Link>

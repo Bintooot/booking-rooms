@@ -8,18 +8,22 @@ import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ToastProvider } from "./components/Toast.jsx";
-// Purge legacy mock data stored in browser localStorage
+// Purge any legacy application data stored in browser localStorage
 try {
-  const legacyRooms = localStorage.getItem("confe_rooms");
-  if (legacyRooms && legacyRooms.includes("Conference Room A")) {
-    localStorage.removeItem("confe_rooms");
-  }
-  const legacyBookings = localStorage.getItem("confe_bookings");
-  if (legacyBookings && legacyBookings.includes("Quarterly Strategy Review")) {
-    localStorage.removeItem("confe_bookings");
-  }
+  const dataKeysToPurge = [
+    "confe_rooms",
+    "confe_bookings",
+    "confe_users",
+    "confe_audit_logs",
+    "confe_notifications",
+    "confe_settings",
+    "confe_permissions",
+  ];
+  dataKeysToPurge.forEach((key) => {
+    localStorage.removeItem(key);
+  });
 } catch {
-  // Ignore
+  // Ignore storage access errors
 }
 
 createRoot(document.getElementById("root")).render(

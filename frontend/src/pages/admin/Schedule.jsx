@@ -1,16 +1,23 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { getBookings, createBooking, updateBookingStatus, deleteBooking } from "../../api/bookings.js";
+import {
+  getBookings,
+  createBooking,
+  updateBookingStatus,
+  deleteBooking,
+} from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
 import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
 import { logAuditEvent } from "../../services/auditService.js";
 import { addNotification } from "../../services/notificationService.js";
 import {
-  ChevronLeft,
-  ChevronRight,
   CalendarDays,
   Plus,
   Users,
@@ -21,14 +28,42 @@ import {
   AlertCircle,
   Trash2,
   Ban,
+  Filter,
 } from "lucide-react";
+
+const CATEGORY_THEMES = {
+  blue: {
+    label: "General",
+    light: { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af", badgeBg: "#dbeafe", bar: "#3b82f6" },
+    dark: { bg: "#1e293b", border: "#334155", text: "#93c5fd", badgeBg: "rgba(59, 130, 246, 0.2)", bar: "#3b82f6" },
+  },
+  purple: {
+    label: "Executive",
+    light: { bg: "#faf5ff", border: "#e9d5ff", text: "#6b21a8", badgeBg: "#f3e8ff", bar: "#8b5cf6" },
+    dark: { bg: "#1e293b", border: "#334155", text: "#c4b5fd", badgeBg: "rgba(139, 92, 246, 0.2)", bar: "#8b5cf6" },
+  },
+  green: {
+    label: "Workshop",
+    light: { bg: "#f0fdf4", border: "#bbf7d0", text: "#166534", badgeBg: "#dcfce7", bar: "#10b981" },
+    dark: { bg: "#1e293b", border: "#334155", text: "#86efac", badgeBg: "rgba(16, 185, 129, 0.2)", bar: "#10b981" },
+  },
+  orange: {
+    label: "Standup",
+    light: { bg: "#fff7ed", border: "#fed7aa", text: "#9a3412", badgeBg: "#ffedd5", bar: "#f97316" },
+    dark: { bg: "#1e293b", border: "#334155", text: "#fdba74", badgeBg: "rgba(249, 115, 22, 0.2)", bar: "#f97316" },
+  },
+  pink: {
+    label: "Interview",
+    light: { bg: "#fdf2f8", border: "#fbcfe8", text: "#9d174d", badgeBg: "#fce7f3", bar: "#ec4899" },
+    dark: { bg: "#1e293b", border: "#334155", text: "#f472b6", badgeBg: "rgba(236, 72, 153, 0.2)", bar: "#ec4899" },
+  },
+};
 
 function Schedule() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [roomFilter, setRoomFilter] = useState("All Rooms");
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -61,7 +96,10 @@ function Schedule() {
       setBookings(bookingsData || []);
       setRooms(roomsData || []);
       if (roomsData && roomsData.length > 0) {
-        setNewBookingData((prev) => ({ ...prev, room_id: prev.room_id || roomsData[0].id }));
+        setNewBookingData((prev) => ({
+          ...prev,
+          room_id: prev.room_id || roomsData[0].id,
+        }));
       }
     } catch {
       showToast("Failed to load schedule", "error");
@@ -74,116 +112,162 @@ function Schedule() {
     loadData();
   }, [loadData]);
 
-  const monthName = currentDate.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const previousMonthDays = new Date(year, month, 0).getDate();
-
-  const calendarDays = [];
-
-  for (let i = firstDay - 1; i >= 0; i--) {
-    calendarDays.push({
-      day: previousMonthDays - i,
-      currentMonth: false,
-      date: new Date(year, month - 1, previousMonthDays - i),
-    });
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push({
-      day,
-      currentMonth: true,
-      date: new Date(year, month, day),
-    });
-  }
-
-  let nextDay = 1;
-  while (calendarDays.length < 42) {
-    calendarDays.push({
-      day: nextDay,
-      currentMonth: false,
-      date: new Date(year, month + 1, nextDay),
-    });
-    nextDay++;
-  }
-
-  const formatDateKey = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  };
-
+  // Filter Bookings by Room
   const filteredBookings = useMemo(() => {
     if (roomFilter === "All Rooms") return bookings;
     return bookings.filter(
-      (b) => String(b.room_id) === String(roomFilter) || b.room_name === roomFilter
+      (b) =>
+        String(b.room_id) === String(roomFilter) || b.room_name === roomFilter
     );
   }, [bookings, roomFilter]);
 
-  const getBookingsForDate = (date) => {
-    const key = formatDateKey(date);
-    return filteredBookings.filter((b) => {
-      if (b.date === key) return true;
-      if (typeof b.start_time === "string" && b.start_time.includes("T")) {
-        return b.start_time.split("T")[0] === key;
+  // Transform bookings into FullCalendar events format
+  const calendarEvents = useMemo(() => {
+    return filteredBookings.map((b) => {
+      let start = b.raw_start_time;
+      let end = b.raw_end_time;
+
+      const baseDate = b.date || new Date().toISOString().split("T")[0];
+      if (!start || !start.includes("T")) {
+        start = `${baseDate}T${b.start_time || "09:00"}:00`;
       }
-      if (typeof b.raw_start_time === "string" && b.raw_start_time.includes("T")) {
-        return b.raw_start_time.split("T")[0] === key;
+      if (!end || !end.includes("T")) {
+        end = `${baseDate}T${b.end_time || "10:00"}:00`;
       }
-      return false;
+
+      const colorKey = b.color && CATEGORY_THEMES[b.color] ? b.color : "blue";
+      const isCancelled = b.status === "cancelled";
+
+      return {
+        id: String(b.id),
+        title: b.title || "Meeting",
+        start,
+        end,
+        backgroundColor: "transparent",
+        borderColor: "transparent",
+        extendedProps: {
+          booking: b,
+          colorKey,
+          isCancelled,
+        },
+      };
     });
+  }, [filteredBookings]);
+
+  // Event Click (View details)
+  const handleEventClick = (info) => {
+    const b = info.event.extendedProps?.booking;
+    if (b) {
+      setSelectedBooking(b);
+    }
   };
 
-  const goToPreviousMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-  const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
-  const goToToday = () => setCurrentDate(new Date());
+  // Date / Slot Click (Create new reservation)
+  const handleDateClick = (arg) => {
+    const rawDateStr = arg.dateStr || "";
+    const clickedDate = rawDateStr.split("T")[0] || new Date().toISOString().split("T")[0];
+    let clickedTime = "09:00";
+    let endTime = "10:00";
 
-  const getBookingColor = (color) => {
-    const styles = {
-      blue: theme
-        ? "bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25"
-        : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
-      purple: theme
-        ? "bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25"
-        : "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
-      green: theme
-        ? "bg-green-500/15 text-green-300 border-green-500/30 hover:bg-green-500/25"
-        : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
-      orange: theme
-        ? "bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25"
-        : "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100",
-      pink: theme
-        ? "bg-pink-500/15 text-pink-300 border-pink-500/30 hover:bg-pink-500/25"
-        : "bg-pink-50 text-pink-700 border-pink-200 hover:bg-pink-100",
-    };
-    return styles[color] || styles.blue;
-  };
+    if (rawDateStr.includes("T")) {
+      clickedTime = rawDateStr.split("T")[1].slice(0, 5);
+      const [h, m] = clickedTime.split(":").map(Number);
+      const nextHour = (h + 1) % 24;
+      endTime = `${String(nextHour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
 
-  const isToday = (date) => {
-    const today = new Date();
-    return (
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
-    );
-  };
-
-  const openNewBookingForDate = (date) => {
     setNewBookingData((prev) => ({
       ...prev,
-      date: formatDateKey(date),
+      date: clickedDate,
+      start_time: clickedTime,
+      end_time: endTime,
       room_id: prev.room_id || (rooms[0] ? rooms[0].id : ""),
     }));
     setConflictWarning("");
     setShowBookingModal(true);
+  };
+
+  // Custom Event Content Rendering
+  const renderEventContent = (eventInfo) => {
+    const { booking, colorKey, isCancelled } = eventInfo.event.extendedProps || {};
+    const viewType = eventInfo.view.type;
+    const isMonthView = viewType === "dayGridMonth";
+
+    const catTheme = CATEGORY_THEMES[colorKey] || CATEGORY_THEMES.blue;
+    const colors = theme ? catTheme.dark : catTheme.light;
+
+    if (isCancelled) {
+      colors.bg = theme ? "rgba(239, 68, 68, 0.15)" : "#fef2f2";
+      colors.border = theme ? "rgba(239, 68, 68, 0.3)" : "#fecaca";
+      colors.text = theme ? "#fca5a5" : "#b91c1c";
+      colors.bar = "#ef4444";
+    }
+
+    if (isMonthView) {
+      return (
+        <div
+          className="w-full px-2 py-1 rounded-md flex items-center gap-1.5 overflow-hidden transition-all duration-150 hover:shadow-xs"
+          style={{
+            backgroundColor: colors.bg,
+            border: `1px solid ${colors.border}`,
+            borderLeft: `3px solid ${colors.bar}`,
+            color: colors.text,
+          }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0"
+            style={{ backgroundColor: colors.bar }}
+          />
+          <span className="text-[11px] font-medium truncate leading-tight">
+            {booking?.start_time} {eventInfo.event.title}
+          </span>
+        </div>
+      );
+    }
+
+    // TimeGrid (Week & Day View)
+    return (
+      <div
+        className="w-full h-full p-2 rounded-lg flex flex-col justify-between overflow-hidden shadow-xs transition-all duration-150 hover:shadow-md"
+        style={{
+          backgroundColor: colors.bg,
+          border: `1px solid ${colors.border}`,
+          borderLeft: `4px solid ${colors.bar}`,
+          color: colors.text,
+        }}
+      >
+        <div>
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span
+              className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: colors.badgeBg,
+                color: colors.text,
+              }}
+            >
+              {booking?.room_name || "Room"}
+            </span>
+            <span className="text-[10px] font-normal opacity-85">
+              {booking?.start_time} - {booking?.end_time}
+            </span>
+          </div>
+
+          <h4 className="text-xs font-semibold truncate leading-tight">
+            {eventInfo.event.title}
+          </h4>
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] opacity-75 mt-1">
+          <span className="truncate flex items-center gap-1">
+            <Users size={10} className="shrink-0" />
+            {booking?.booker_name || "Team Member"}
+          </span>
+          {isCancelled && (
+            <span className="text-red-500 font-medium uppercase text-[9px]">Cancelled</span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const handleCreateBooking = async (e) => {
@@ -195,7 +279,9 @@ function Schedule() {
       return;
     }
 
-    const selectedRoom = rooms.find((r) => String(r.id) === String(newBookingData.room_id));
+    const selectedRoom = rooms.find(
+      (r) => String(r.id) === String(newBookingData.room_id)
+    );
     const roomName = selectedRoom ? selectedRoom.name : "Room / Space";
 
     const validation = validateBookingAgainstPolicy(newBookingData, bookings);
@@ -206,7 +292,9 @@ function Schedule() {
     }
 
     if (validation.isWarning) {
-      const proceed = window.confirm(`${validation.error}\nDo you want to proceed anyway?`);
+      const proceed = window.confirm(
+        `${validation.error}\nDo you want to proceed anyway?`
+      );
       if (!proceed) return;
     }
 
@@ -266,7 +354,9 @@ function Schedule() {
     try {
       await updateBookingStatus(booking.id, { status: "cancelled" });
       setBookings((prev) =>
-        prev.map((b) => (b.id === booking.id ? { ...b, status: "cancelled" } : b))
+        prev.map((b) =>
+          b.id === booking.id ? { ...b, status: "cancelled" } : b
+        )
       );
       showToast(`Booking "${booking.title}" has been cancelled`);
       setSelectedBooking(null);
@@ -276,7 +366,9 @@ function Schedule() {
   };
 
   const handleDeleteBooking = async (booking) => {
-    const confirmed = window.confirm(`Permanently delete booking "${booking.title}"?`);
+    const confirmed = window.confirm(
+      `Permanently delete booking "${booking.title}"?`
+    );
     if (!confirmed) return;
 
     try {
@@ -289,295 +381,396 @@ function Schedule() {
     }
   };
 
-  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
+  const inputClass = `w-full rounded-xl border px-3.5 py-2.5 text-xs outline-none transition duration-150 ${
     theme
-      ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      ? "bg-slate-900/80 border-slate-700 text-slate-100 placeholder:text-gray-500 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <main className="w-full min-h-screen pb-16">
       <Banner header="Schedule & Calendar" theme={theme} />
 
-      {/* Page Header */}
-      <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      {/* Header & Quick Action Bar */}
+      <section className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2
-            className={`text-lg font-bold ${
-              theme ? "text-white" : "text-slate-900"
-            }`}
-          >
-            Room Reservation Calendar
-          </h2>
-          <p
-            className={`text-xs mt-0.5 ${
-              theme ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            Monitor real-time room occupancies, avoid scheduling conflicts, and book meetings.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setConflictWarning("");
-            setShowBookingModal(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
-        >
-          <Plus size={16} />
-          New Reservation
-        </button>
-      </div>
-
-      {/* Calendar Controls */}
-      <section
-        className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
-        }`}
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Month Navigation */}
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={goToPreviousMonth}
-              className={`p-2 rounded-lg transition ${
-                theme
-                  ? "text-gray-400 hover:bg-slate-700 hover:text-white"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-slate-900"
-              }`}
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <h3
-              className={`min-w-44 text-center text-base font-bold ${
+            <h2
+              className={`text-lg font-semibold tracking-tight ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
-              {monthName}
-            </h3>
-
-            <button
-              type="button"
-              onClick={goToNextMonth}
-              className={`p-2 rounded-lg transition ${
+              Interactive Schedule
+            </h2>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                 theme
-                  ? "text-gray-400 hover:bg-slate-700 hover:text-white"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-slate-900"
+                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                  : "bg-blue-50 text-blue-600 border-blue-200"
               }`}
             >
-              <ChevronRight size={18} />
-            </button>
-
-            <button
-              type="button"
-              onClick={goToToday}
-              className={`ml-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                theme
-                  ? "bg-slate-700 text-gray-200 hover:bg-slate-600"
-                  : "bg-gray-100 text-slate-700 hover:bg-gray-200"
-              }`}
-            >
-              Today
-            </button>
+              Live Sync
+            </span>
           </div>
+          <p
+            className={`text-xs mt-1 ${
+              theme ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
+            Switch between Month, Week, and Day views. Click any time slot to reserve a room.
+          </p>
+        </div>
 
-          {/* Room filter */}
-          <div className="flex items-center gap-2">
-            <CalendarDays
-              size={16}
-              className={theme ? "text-gray-500" : "text-gray-400"}
-            />
+        {/* Right side controls */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Room Filter Pill */}
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-xs transition ${
+              theme
+                ? "bg-slate-800 border-slate-700 text-slate-200"
+                : "bg-white border-slate-200 text-slate-700"
+            }`}
+          >
+            <Filter size={14} className="text-blue-500 shrink-0" />
+            <span className="text-[11px] text-slate-400">Space:</span>
             <select
               value={roomFilter}
               onChange={(e) => setRoomFilter(e.target.value)}
-              className={`rounded-xl border px-3 py-2 text-xs font-medium outline-none ${
-                theme
-                  ? "bg-slate-900 border-slate-700 text-gray-200"
-                  : "bg-gray-50 border-gray-200 text-slate-700"
-              }`}
+              className="bg-transparent text-xs font-medium outline-none cursor-pointer pr-1 text-slate-800 dark:text-slate-200"
             >
-              <option value="All Rooms">All Rooms ({rooms.length})</option>
+              <option value="All Rooms" className={theme ? "bg-slate-800 text-white" : "bg-white text-slate-800"}>
+                All Rooms ({rooms.length})
+              </option>
               {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
+                <option
+                  key={room.id}
+                  value={room.id}
+                  className={theme ? "bg-slate-800 text-white" : "bg-white text-slate-800"}
+                >
                   {room.name}
                 </option>
               ))}
             </select>
           </div>
+
+          {/* New Reservation Action Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setConflictWarning("");
+              setShowBookingModal(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition cursor-pointer"
+          >
+            <Plus size={15} />
+            New Reservation
+          </button>
         </div>
       </section>
 
-      {/* Calendar Grid */}
+      {/* Category Legend & Mini Stats Strip */}
       <section
-        className={`mt-4 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+        className={`mt-4 px-4 py-2.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs transition ${
+          theme
+            ? "bg-slate-800/80 border-slate-700/80 text-slate-300"
+            : "bg-white border-slate-200 text-slate-600"
         }`}
       >
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-b border-gray-200 dark:border-slate-700">
-          {[
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ].map((day) => (
-            <div
-              key={day}
-              className={`py-3 px-2 text-center text-[11px] font-bold uppercase tracking-wider border-r last:border-r-0 ${
-                theme
-                  ? "text-gray-400 border-slate-700"
-                  : "text-gray-500 border-gray-200"
-              }`}
-            >
-              <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 3)}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Days cells */}
-        {loading ? (
-          <div className="py-20 text-center text-xs text-gray-400">Loading schedule...</div>
-        ) : (
-          <div className="grid grid-cols-7">
-            {calendarDays.map((calendarDay, index) => {
-              const dayBookings = getBookingsForDate(calendarDay.date);
-
+        <div className="flex items-center gap-2 text-[11px]">
+          <span className="font-medium text-slate-500">Categories:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {Object.entries(CATEGORY_THEMES).map(([key, cat]) => {
+              const c = theme ? cat.dark : cat.light;
               return (
-                <div
-                  key={`${formatDateKey(calendarDay.date)}-${index}`}
-                  onClick={() => openNewBookingForDate(calendarDay.date)}
-                  className={`relative min-h-32 p-2 border-b border-r cursor-pointer transition hover:bg-blue-500/5 ${
-                    theme ? "border-slate-700" : "border-gray-200"
-                  } ${
-                    !calendarDay.currentMonth
-                      ? theme
-                        ? "bg-slate-900/40 text-gray-600"
-                        : "bg-gray-50/70 text-gray-300"
-                      : ""
-                  }`}
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-medium text-[10px] border"
+                  style={{
+                    backgroundColor: c.bg,
+                    borderColor: c.border,
+                    color: c.text,
+                  }}
                 >
-                  {/* Date header */}
-                  <div className="flex justify-between items-start pointer-events-none">
-                    <span
-                      className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ${
-                        isToday(calendarDay.date)
-                          ? "bg-blue-600 text-white font-bold"
-                          : calendarDay.currentMonth
-                            ? theme
-                              ? "text-gray-200"
-                              : "text-slate-800"
-                            : theme
-                              ? "text-gray-600"
-                              : "text-gray-400"
-                      }`}
-                    >
-                      {calendarDay.day}
-                    </span>
-
-                    {dayBookings.length > 0 && (
-                      <span
-                        className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
-                          theme
-                            ? "bg-slate-700 text-blue-400"
-                            : "bg-blue-50 text-blue-700"
-                        }`}
-                      >
-                        {dayBookings.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bookings list */}
-                  <div className="mt-1.5 space-y-1">
-                    {dayBookings.slice(0, 3).map((booking) => (
-                      <button
-                        type="button"
-                        key={booking.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedBooking(booking);
-                        }}
-                        className={`w-full text-left border rounded-lg px-2 py-1 transition ${getBookingColor(
-                          booking.color,
-                        )} ${booking.status === "cancelled" ? "line-through opacity-50" : ""}`}
-                      >
-                        <p className="text-[10px] font-bold truncate">
-                          {booking.title}
-                        </p>
-                        <div className="flex items-center gap-1 text-[9px] opacity-80 mt-0.5">
-                          <Clock size={9} />
-                          <span>{booking.start_time}</span>
-                          <span>•</span>
-                          <span className="truncate">{booking.room_name}</span>
-                        </div>
-                      </button>
-                    ))}
-
-                    {dayBookings.length > 3 && (
-                      <p className="text-[10px] text-blue-500 font-semibold px-1">
-                        +{dayBookings.length - 3} more
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: c.bar }}
+                  />
+                  {cat.label}
+                </span>
               );
             })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+          <span>{filteredBookings.length} Bookings</span>
+          <span>•</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+            {rooms.filter((r) => r.is_active).length} Active Spaces
+          </span>
+        </div>
+      </section>
+
+      {/* Calendar Card Container */}
+      <section
+        className={`mt-4 rounded-3xl border p-4 md:p-6 shadow-xs transition ${
+          theme
+            ? "bg-slate-800/90 border-slate-700 text-slate-100"
+            : "bg-white border-slate-200 text-slate-800"
+        }`}
+      >
+        {loading ? (
+          <div className="py-24 flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            <p className="text-xs font-normal text-slate-400">Loading schedule...</p>
+          </div>
+        ) : (
+          <div className={`spacesync-fullcalendar ${theme ? "fc-dark-theme" : "fc-light-theme"}`}>
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              buttonText={{
+                today: "Today",
+                dayGridMonth: "Month",
+                timeGridWeek: "Week",
+                timeGridDay: "Day",
+              }}
+              events={calendarEvents}
+              eventContent={renderEventContent}
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              editable={false}
+              selectable={true}
+              selectMirror={true}
+              dayMaxEvents={3}
+              weekends={true}
+              height="auto"
+              slotMinTime="07:00:00"
+              slotMaxTime="21:00:00"
+              allDaySlot={false}
+              nowIndicator={true}
+              slotDuration="00:30:00"
+              slotLabelInterval="01:00"
+            />
           </div>
         )}
       </section>
 
-      {/* NEW BOOKING MODAL */}
+      {/* Scoped Styles for FullCalendar */}
+      <style>{`
+        .spacesync-fullcalendar .fc {
+          font-family: inherit;
+        }
+
+        /* Toolbar Title */
+        .spacesync-fullcalendar .fc-toolbar-title {
+          font-size: 1.05rem !important;
+          font-weight: 600 !important;
+          letter-spacing: -0.01em;
+        }
+
+        /* Toolbar Layout */
+        .spacesync-fullcalendar .fc-toolbar {
+          margin-bottom: 1.25rem !important;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        /* Buttons */
+        .spacesync-fullcalendar .fc-button {
+          font-size: 0.75rem !important;
+          font-weight: 500 !important;
+          border-radius: 0.75rem !important;
+          padding: 0.4rem 0.85rem !important;
+          box-shadow: none !important;
+          transition: all 0.15s ease-in-out !important;
+        }
+
+        /* Base event resets */
+        .spacesync-fullcalendar .fc-event {
+          background: transparent !important;
+          border: none !important;
+          margin-bottom: 2px !important;
+          cursor: pointer;
+        }
+
+        /* Header Day Names */
+        .spacesync-fullcalendar .fc-col-header-cell {
+          padding: 8px 0 !important;
+          font-size: 0.7rem !important;
+          font-weight: 600 !important;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        /* Day numbers */
+        .spacesync-fullcalendar .fc-daygrid-day-number {
+          padding: 6px 8px !important;
+          font-size: 0.75rem !important;
+          font-weight: 500 !important;
+        }
+
+        /* TimeGrid Hour Labels */
+        .spacesync-fullcalendar .fc-timegrid-slot-label-cushion {
+          font-size: 0.7rem !important;
+          font-weight: 500 !important;
+        }
+
+        /* --- LIGHT THEME STYLES --- */
+        .fc-light-theme {
+          color: #1e293b;
+        }
+        .fc-light-theme .fc-toolbar-title {
+          color: #0f172a;
+        }
+        .fc-light-theme .fc-button-primary {
+          background-color: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #334155 !important;
+        }
+        .fc-light-theme .fc-button-primary:hover {
+          background-color: #f8fafc !important;
+          color: #0f172a !important;
+        }
+        .fc-light-theme .fc-button-active {
+          background-color: #2563eb !important;
+          border-color: #2563eb !important;
+          color: #ffffff !important;
+        }
+        .fc-light-theme .fc-theme-standard td, 
+        .fc-light-theme .fc-theme-standard th {
+          border-color: #e2e8f0 !important;
+        }
+        .fc-light-theme .fc-col-header-cell-cushion {
+          color: #475569 !important;
+        }
+        .fc-light-theme .fc-daygrid-day-number {
+          color: #334155 !important;
+        }
+        .fc-light-theme .fc-daygrid-day.fc-day-today {
+          background-color: #eff6ff !important;
+        }
+        .fc-light-theme .fc-day-today .fc-daygrid-day-number {
+          background-color: #2563eb;
+          color: #ffffff !important;
+          border-radius: 9999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          margin: 4px;
+        }
+        .fc-light-theme .fc-timegrid-slot-label-cushion {
+          color: #64748b !important;
+        }
+        .fc-light-theme .fc-timegrid-now-indicator-line {
+          border-color: #2563eb !important;
+        }
+
+        /* --- DARK THEME STYLES --- */
+        .fc-dark-theme {
+          color: #f1f5f9;
+        }
+        .fc-dark-theme .fc-toolbar-title {
+          color: #ffffff;
+        }
+        .fc-dark-theme .fc-button-primary {
+          background-color: #1e293b !important;
+          border: 1px solid #334155 !important;
+          color: #94a3b8 !important;
+        }
+        .fc-dark-theme .fc-button-primary:hover {
+          background-color: #334155 !important;
+          color: #f8fafc !important;
+        }
+        .fc-dark-theme .fc-button-active {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+          color: #ffffff !important;
+        }
+        .fc-dark-theme .fc-theme-standard td, 
+        .fc-dark-theme .fc-theme-standard th {
+          border-color: #334155 !important;
+        }
+        .fc-dark-theme .fc-col-header-cell-cushion {
+          color: #94a3b8 !important;
+        }
+        .fc-dark-theme .fc-daygrid-day-number {
+          color: #cbd5e1 !important;
+        }
+        .fc-dark-theme .fc-daygrid-day.fc-day-today {
+          background-color: rgba(59, 130, 246, 0.08) !important;
+        }
+        .fc-dark-theme .fc-day-today .fc-daygrid-day-number {
+          background-color: #3b82f6;
+          color: #ffffff !important;
+          border-radius: 9999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          margin: 4px;
+        }
+        .fc-dark-theme .fc-timegrid-slot-label-cushion {
+          color: #64748b !important;
+        }
+        .fc-dark-theme .fc-timegrid-now-indicator-line {
+          border-color: #3b82f6 !important;
+        }
+      `}</style>
+
+      {/* NEW RESERVATION MODAL */}
       {showBookingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setShowBookingModal(false)}
           />
 
           <section
-            className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
+            className={`relative w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border transition-all ${
               theme
-                ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                ? "bg-slate-900 border-slate-700 text-slate-100"
+                : "bg-white border-slate-200 text-slate-800"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
-              <div>
-                <h3
-                  className={`text-base font-bold ${
-                    theme ? "text-white" : "text-slate-900"
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                    theme ? "bg-blue-500/10 text-blue-400" : "bg-blue-50 text-blue-600"
                   }`}
                 >
-                  Schedule Room Reservation
-                </h3>
-                <p
-                  className={`text-xs mt-0.5 ${
-                    theme ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Date: {newBookingData.date}
-                </p>
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold tracking-tight">
+                    Schedule Room Reservation
+                  </h3>
+                  <p className={`text-xs ${theme ? "text-slate-400" : "text-slate-500"}`}>
+                    Selected Date: {newBookingData.date}
+                  </p>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowBookingModal(false)}
-                className={`p-2 rounded-lg transition ${
+                className={`p-2 rounded-xl transition ${
                   theme
-                    ? "text-gray-400 hover:text-white hover:bg-slate-700"
-                    : "text-gray-400 hover:text-slate-900 hover:bg-gray-100"
+                    ? "text-slate-400 hover:text-white hover:bg-slate-800"
+                    : "text-slate-400 hover:text-slate-800 hover:bg-slate-100"
                 }`}
               >
                 <X size={18} />
@@ -586,7 +779,7 @@ function Schedule() {
 
             <form onSubmit={handleCreateBooking} className="p-6 space-y-4">
               {conflictWarning && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs flex items-center gap-2 font-medium">
                   <AlertCircle size={15} className="shrink-0" />
                   <span>{conflictWarning}</span>
                 </div>
@@ -594,23 +787,22 @@ function Schedule() {
 
               {/* Room picker */}
               <div>
-                <label
-                  className={`block text-xs font-semibold mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Room / Space
+                <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                  Target Room / Collaborative Space
                 </label>
                 <select
                   value={newBookingData.room_id}
                   onChange={(e) =>
-                    setNewBookingData({ ...newBookingData, room_id: e.target.value })
+                    setNewBookingData({
+                      ...newBookingData,
+                      room_id: e.target.value,
+                    })
                   }
                   required
                   className={inputClass}
                 >
                   {rooms.map((room) => (
-                    <option key={room.id} value={room.id}>
+                    <option key={room.id} value={room.id} className={theme ? "bg-slate-900 text-white" : "bg-white text-slate-900"}>
                       {room.name} ({room.capacity} seats · {room.location})
                     </option>
                   ))}
@@ -619,19 +811,18 @@ function Schedule() {
 
               {/* Meeting title */}
               <div>
-                <label
-                  className={`block text-xs font-semibold mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Meeting / Event Title
+                <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                  Meeting / Reservation Title
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Weekly Product Sync"
+                  placeholder="e.g. Q3 Design Sprint & Planning"
                   value={newBookingData.title}
                   onChange={(e) =>
-                    setNewBookingData({ ...newBookingData, title: e.target.value })
+                    setNewBookingData({
+                      ...newBookingData,
+                      title: e.target.value,
+                    })
                   }
                   required
                   className={inputClass}
@@ -640,19 +831,18 @@ function Schedule() {
 
               {/* Booker name */}
               <div>
-                <label
-                  className={`block text-xs font-semibold mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
+                <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
                   Organizer / Booker Name
                 </label>
                 <input
                   type="text"
-                  placeholder="Your Name"
+                  placeholder="e.g. Alex Morgan"
                   value={newBookingData.booker_name}
                   onChange={(e) =>
-                    setNewBookingData({ ...newBookingData, booker_name: e.target.value })
+                    setNewBookingData({
+                      ...newBookingData,
+                      booker_name: e.target.value,
+                    })
                   }
                   required
                   className={inputClass}
@@ -662,18 +852,17 @@ function Schedule() {
               {/* Date & Attendees */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label
-                    className={`block text-xs font-semibold mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
                     Date
                   </label>
                   <input
                     type="date"
                     value={newBookingData.date}
                     onChange={(e) =>
-                      setNewBookingData({ ...newBookingData, date: e.target.value })
+                      setNewBookingData({
+                        ...newBookingData,
+                        date: e.target.value,
+                      })
                     }
                     required
                     className={inputClass}
@@ -681,19 +870,18 @@ function Schedule() {
                 </div>
 
                 <div>
-                  <label
-                    className={`block text-xs font-semibold mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
-                    Attendees
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                    Attendees Count
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={newBookingData.attendees}
                     onChange={(e) =>
-                      setNewBookingData({ ...newBookingData, attendees: e.target.value })
+                      setNewBookingData({
+                        ...newBookingData,
+                        attendees: e.target.value,
+                      })
                     }
                     required
                     className={inputClass}
@@ -704,18 +892,17 @@ function Schedule() {
               {/* Time slots */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label
-                    className={`block text-xs font-semibold mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
                     Start Time
                   </label>
                   <input
                     type="time"
                     value={newBookingData.start_time}
                     onChange={(e) =>
-                      setNewBookingData({ ...newBookingData, start_time: e.target.value })
+                      setNewBookingData({
+                        ...newBookingData,
+                        start_time: e.target.value,
+                      })
                     }
                     required
                     className={inputClass}
@@ -723,18 +910,17 @@ function Schedule() {
                 </div>
 
                 <div>
-                  <label
-                    className={`block text-xs font-semibold mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
                     End Time
                   </label>
                   <input
                     type="time"
                     value={newBookingData.end_time}
                     onChange={(e) =>
-                      setNewBookingData({ ...newBookingData, end_time: e.target.value })
+                      setNewBookingData({
+                        ...newBookingData,
+                        end_time: e.target.value,
+                      })
                     }
                     required
                     className={inputClass}
@@ -742,46 +928,57 @@ function Schedule() {
                 </div>
               </div>
 
-              {/* Color Tag */}
+              {/* Color Tag Selector */}
               <div>
-                <label
-                  className={`block text-xs font-semibold mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Category Color
+                <label className={`block text-xs font-medium mb-2 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                  Category Tag
                 </label>
-                <div className="flex gap-2">
-                  {["blue", "purple", "green", "orange", "pink"].map((c) => (
-                    <button
-                      type="button"
-                      key={c}
-                      onClick={() => setNewBookingData({ ...newBookingData, color: c })}
-                      className={`w-7 h-7 rounded-full border-2 transition ${
-                        newBookingData.color === c ? "scale-110 border-white ring-2 ring-blue-500" : "border-transparent"
-                      }`}
-                      style={{
-                        backgroundColor:
-                          c === "blue" ? "#3b82f6" : c === "purple" ? "#a855f7" : c === "green" ? "#22c55e" : c === "orange" ? "#f97316" : "#ec4899",
-                      }}
-                    />
-                  ))}
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(CATEGORY_THEMES).map(([key, cat]) => {
+                    const c = theme ? cat.dark : cat.light;
+                    const isSelected = newBookingData.color === key;
+                    return (
+                      <button
+                        type="button"
+                        key={key}
+                        onClick={() =>
+                          setNewBookingData({ ...newBookingData, color: key })
+                        }
+                        className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                          isSelected
+                            ? "ring-2 ring-blue-500 scale-102"
+                            : "opacity-80 hover:opacity-100"
+                        }`}
+                        style={{
+                          backgroundColor: c.bg,
+                          borderColor: c.border,
+                          color: c.text,
+                        }}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: c.bar }}
+                        />
+                        {cat.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Actions */}
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-800" : "border-slate-100"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setShowBookingModal(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
                     theme
-                      ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      ? "text-slate-400 hover:text-white hover:bg-slate-800"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -789,7 +986,7 @@ function Schedule() {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-xs transition cursor-pointer"
                 >
                   Confirm Reservation
                 </button>
@@ -803,34 +1000,30 @@ function Schedule() {
       {selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setSelectedBooking(null)}
           />
 
           <section
-            className={`relative w-full max-w-md rounded-3xl shadow-2xl p-6 ${
+            className={`relative w-full max-w-md rounded-3xl shadow-2xl p-6 border transition-all ${
               theme
-                ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                ? "bg-slate-900 border-slate-700 text-slate-100"
+                : "bg-white border-slate-200 text-slate-800"
             }`}
           >
             <div className="flex items-start justify-between">
               <div>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${
                     selectedBooking.status === "cancelled"
-                      ? "bg-red-500/10 text-red-400 border-red-500/20"
-                      : "bg-green-500/10 text-green-400 border-green-500/20"
+                      ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                      : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                   }`}
                 >
-                  {selectedBooking.status?.toUpperCase() || "CONFIRMED"}
+                  {selectedBooking.status || "CONFIRMED"}
                 </span>
 
-                <h3
-                  className={`text-base font-bold mt-2 ${
-                    theme ? "text-white" : "text-slate-900"
-                  }`}
-                >
+                <h3 className="text-base font-semibold tracking-tight mt-2">
                   {selectedBooking.title}
                 </h3>
               </div>
@@ -838,8 +1031,10 @@ function Schedule() {
               <button
                 type="button"
                 onClick={() => setSelectedBooking(null)}
-                className={`p-1.5 rounded-lg transition ${
-                  theme ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-slate-900"
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  theme
+                    ? "text-slate-400 hover:text-white hover:bg-slate-800"
+                    : "text-slate-400 hover:text-slate-800 hover:bg-slate-100"
                 }`}
               >
                 <X size={18} />
@@ -847,42 +1042,61 @@ function Schedule() {
             </div>
 
             <div className="mt-4 space-y-2.5 text-xs">
-              <div className="flex items-center gap-2 text-blue-500 font-semibold">
-                <MapPin size={14} />
-                <span>{selectedBooking.room_name || `Room #${selectedBooking.room_id}`}</span>
+              <div
+                className={`flex items-center gap-2 p-2.5 rounded-xl border ${
+                  theme
+                    ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+                }`}
+              >
+                <MapPin size={15} className="shrink-0" />
+                <span className="font-medium">
+                  {selectedBooking.room_name || `Room #${selectedBooking.room_id}`}
+                </span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-400">
-                <Calendar size={14} />
+              <div className={`flex items-center gap-2 px-1 ${theme ? "text-slate-400" : "text-slate-600"}`}>
+                <Calendar size={14} className="shrink-0" />
                 <span>{selectedBooking.date}</span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-400">
-                <Clock size={14} />
-                <span>{selectedBooking.start_time} - {selectedBooking.end_time}</span>
+              <div className={`flex items-center gap-2 px-1 ${theme ? "text-slate-400" : "text-slate-600"}`}>
+                <Clock size={14} className="shrink-0" />
+                <span>
+                  {selectedBooking.start_time} - {selectedBooking.end_time}
+                </span>
               </div>
 
-              <div className="flex items-center gap-2 text-gray-400">
-                <Users size={14} />
-                <span>Booked by {selectedBooking.booker_name} ({selectedBooking.attendees} attendees)</span>
+              <div className={`flex items-center gap-2 px-1 ${theme ? "text-slate-400" : "text-slate-600"}`}>
+                <Users size={14} className="shrink-0" />
+                <span>
+                  Booked by {selectedBooking.booker_name} ({selectedBooking.attendees} attendees)
+                </span>
               </div>
 
               {selectedBooking.notes && (
-                <p className="mt-2 p-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-xs">
-                  {selectedBooking.notes}
-                </p>
+                <div
+                  className={`mt-3 p-3 rounded-2xl border text-xs ${
+                    theme
+                      ? "bg-slate-800/80 border-slate-700/60 text-slate-300"
+                      : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <p className="text-[10px] uppercase font-medium text-slate-400 mb-1">Notes</p>
+                  <p>{selectedBooking.notes}</p>
+                </div>
               )}
             </div>
 
             <div
               className={`flex items-center justify-between gap-3 mt-6 pt-4 border-t ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <button
                 type="button"
                 onClick={() => handleDeleteBooking(selectedBooking)}
-                className="text-red-500 hover:text-red-600 text-xs font-semibold flex items-center gap-1"
+                className="text-red-500 hover:text-red-600 text-xs font-medium flex items-center gap-1.5 p-2 rounded-xl transition cursor-pointer"
               >
                 <Trash2 size={14} /> Delete
               </button>
@@ -891,7 +1105,11 @@ function Schedule() {
                 <button
                   type="button"
                   onClick={() => handleCancelBooking(selectedBooking)}
-                  className="px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition flex items-center gap-1.5"
+                  className={`px-4 py-2 rounded-xl border text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
+                    theme
+                      ? "border-red-500/30 text-red-400 hover:bg-red-500/15"
+                      : "border-red-200 text-red-600 hover:bg-red-50"
+                  }`}
                 >
                   <Ban size={14} /> Cancel Booking
                 </button>

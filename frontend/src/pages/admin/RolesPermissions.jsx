@@ -37,7 +37,7 @@ function RolesPermissions() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -56,10 +56,10 @@ function RolesPermissions() {
           <button
             type="button"
             onClick={handleReset}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition border ${
               theme
                 ? "border-slate-700 bg-slate-800 text-gray-300 hover:bg-slate-700"
-                : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             <RotateCcw size={14} /> Reset Defaults
@@ -67,7 +67,7 @@ function RolesPermissions() {
           <button
             type="button"
             onClick={saveSettings}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
           >
             <Save size={15} /> Save Changes
           </button>
@@ -76,17 +76,17 @@ function RolesPermissions() {
 
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr
-                className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                   theme
                     ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                    : "border-gray-200 bg-gray-50 text-gray-500"
+                    : "border-slate-200 bg-slate-50/80 text-slate-600"
                 }`}
               >
                 <th className="py-4 px-6">System Privilege</th>
@@ -98,7 +98,7 @@ function RolesPermissions() {
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
               {permissions.map((perm) => (
                 <tr key={perm.id} className="transition hover:bg-blue-500/5">
-                  <td className="py-4 px-6 font-semibold">
+                  <td className="py-4 px-6 font-normal">
                     <span className={theme ? "text-gray-200" : "text-slate-800"}>
                       {perm.name}
                     </span>

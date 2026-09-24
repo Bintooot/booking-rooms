@@ -58,37 +58,16 @@ export function normalizeBooking(b, fallback = {}) {
   };
 }
 
-function getLocalBookings() {
-  const saved = localStorage.getItem("confe_bookings");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed.map((b) => normalizeBooking(b));
-      }
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-function saveLocalBookings(bookings) {
-  localStorage.setItem("confe_bookings", JSON.stringify((bookings || []).map((b) => normalizeBooking(b))));
-}
-
 export async function getBookings() {
   try {
     const response = await api.get("/bookings");
     if (response.data && Array.isArray(response.data)) {
-      const normalized = response.data.map((b) => normalizeBooking(b));
-      saveLocalBookings(normalized);
-      return normalized;
+      return response.data.map((b) => normalizeBooking(b));
     }
   } catch (err) {
-    console.warn("Backend /bookings unavailable, using local store:", err.message);
+    console.error("Failed to fetch bookings from backend:", err.message);
   }
-  return getLocalBookings();
+  return [];
 }
 
 export async function getBookingById(id) {
@@ -96,80 +75,45 @@ export async function getBookingById(id) {
     const response = await api.get(`/bookings/${id}`);
     if (response.data) return normalizeBooking(response.data);
   } catch (err) {
-    console.warn(`Backend /bookings/${id} unavailable:`, err.message);
+    console.error(`Failed to fetch booking ${id}:`, err.message);
   }
-  const bookings = getLocalBookings();
-  return bookings.find((b) => b.id === Number(id)) || null;
+  return null;
 }
 
 export async function createBooking(data) {
   try {
     const response = await api.post("/bookings", data);
     if (response.data && response.data.booking) {
-      const normalized = normalizeBooking(response.data.booking, data);
-      const current = getLocalBookings();
-      saveLocalBookings([normalized, ...current]);
-      return normalized;
+      return normalizeBooking(response.data.booking, data);
     }
+    return normalizeBooking(response.data, data);
   } catch (err) {
-    console.warn("Backend create booking failed, saving locally:", err.message);
+    console.error("Failed to create booking on backend:", err.message);
+    throw err;
   }
-
-  const bookings = getLocalBookings();
-  const normalized = normalizeBooking({
-    ...data,
-    id: Date.now(),
-    status: data.status || "confirmed",
-  }, data);
-
-  const updated = [normalized, ...bookings];
-  saveLocalBookings(updated);
-  return normalized;
 }
 
 export async function updateBookingStatus(id, { start_time, end_time, status, ...rest }) {
   try {
     const response = await api.patch(`/bookings/${id}`, { start_time, end_time, status, ...rest });
     if (response.data) {
-      const normalized = normalizeBooking(response.data);
-      const bookings = getLocalBookings().map((b) => (b.id === Number(id) ? normalized : b));
-      saveLocalBookings(bookings);
-      return normalized;
+      return normalizeBooking(response.data);
     }
   } catch (err) {
-    console.warn(`Backend update booking ${id} status failed:`, err.message);
+    console.error(`Failed to update booking ${id}:`, err.message);
+    throw err;
   }
-
-  const bookings = getLocalBookings();
-  let updatedBooking = null;
-  const updated = bookings.map((b) => {
-    if (b.id === Number(id)) {
-      updatedBooking = normalizeBooking({
-        ...b,
-        ...(start_time ? { start_time } : {}),
-        ...(end_time ? { end_time } : {}),
-        ...(status ? { status } : {}),
-        ...rest,
-      });
-      return updatedBooking;
-    }
-    return b;
-  });
-  saveLocalBookings(updated);
-  return updatedBooking;
+  return null;
 }
 
 export async function deleteBooking(id) {
   try {
     await api.delete(`/bookings/${id}`);
+    return { success: true, id };
   } catch (err) {
-    console.warn(`Backend delete booking ${id} failed:`, err.message);
+    console.error(`Failed to delete booking ${id}:`, err.message);
+    throw err;
   }
-
-  const bookings = getLocalBookings();
-  const updated = bookings.filter((b) => b.id !== Number(id));
-  saveLocalBookings(updated);
-  return { success: true, id };
 }
 
 export async function checkInBooking(id) {

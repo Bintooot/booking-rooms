@@ -6,7 +6,6 @@
 
 import { api } from "../api/client.js";
 
-const AUDIT_STORAGE_KEY = "confe_audit_logs";
 export const AUDIT_UPDATED_EVENT = "confe_audit_logs_updated";
 
 const INITIAL_LOGS = [
@@ -73,23 +72,13 @@ export function formatAuditDisplayTime(date) {
   return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}, ${timeStr}`;
 }
 
+let memoryAuditLogs = [...INITIAL_LOGS];
+
 /**
- * Retrieve current audit logs synchronously from storage cache.
+ * Retrieve current audit logs synchronously from memory cache.
  */
 export function getAuditLogs() {
-  const saved = localStorage.getItem(AUDIT_STORAGE_KEY);
-  if (!saved) {
-    localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(INITIAL_LOGS));
-    return [...INITIAL_LOGS];
-  }
-
-  try {
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error("Failed to parse audit logs from storage:", err);
-    return [];
-  }
+  return [...memoryAuditLogs];
 }
 
 /**
@@ -99,18 +88,18 @@ export async function fetchAuditLogs(options = {}) {
   try {
     const response = await api.get("/audit-logs", { params: options });
     if (response.data && Array.isArray(response.data)) {
-      localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(response.data));
+      memoryAuditLogs = response.data;
       window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: response.data }));
       return response.data;
     }
   } catch (err) {
-    console.warn("Backend /audit-logs unavailable, falling back to local cache:", err.message);
+    console.warn("Backend /audit-logs unavailable, falling back to memory cache:", err.message);
   }
   return getAuditLogs();
 }
 
 /**
- * Record a new audit log event to PostgreSQL with local fallback.
+ * Record a new audit log event to PostgreSQL with memory fallback.
  */
 export function logAuditEvent({ action, actor = "System", target = "N/A", type = "system", ip = "127.0.0.1", user_id = null }) {
   const currentLogs = getAuditLogs();
@@ -127,8 +116,7 @@ export function logAuditEvent({ action, actor = "System", target = "N/A", type =
     type: type || "system",
   };
 
-  const updatedLogs = [localLog, ...currentLogs].slice(0, 200);
-  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(updatedLogs));
+  memoryAuditLogs = [localLog, ...currentLogs].slice(0, 200);
   window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: localLog }));
 
   // Asynchronously persist to PostgreSQL
@@ -147,10 +135,10 @@ export function logAuditEvent({ action, actor = "System", target = "N/A", type =
 }
 
 /**
- * Clear all audit logs on server and local cache.
+ * Clear all audit logs on server and memory cache.
  */
 export async function clearAuditLogs() {
-  localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify([]));
+  memoryAuditLogs = [];
   window.dispatchEvent(new CustomEvent(AUDIT_UPDATED_EVENT, { detail: [] }));
 
   try {

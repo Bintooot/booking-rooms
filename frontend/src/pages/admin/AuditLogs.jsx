@@ -61,7 +61,7 @@ function AuditLogs() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -81,10 +81,10 @@ function AuditLogs() {
             type="button"
             onClick={handleExport}
             disabled={logs.length === 0}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition ${
               theme
                 ? "bg-slate-800 border-slate-700 text-gray-300 hover:bg-slate-700"
-                : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
             } disabled:opacity-40 cursor-pointer`}
           >
             <Download size={14} /> Export CSV
@@ -94,10 +94,10 @@ function AuditLogs() {
             type="button"
             onClick={handleClear}
             disabled={logs.length === 0}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold text-red-500 transition ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium text-red-500 transition ${
               theme
                 ? "bg-slate-800 border-slate-700 hover:bg-red-500/10"
-                : "bg-white border-gray-200 hover:bg-red-50"
+                : "bg-white border-slate-200 hover:bg-red-50"
             } disabled:opacity-40 cursor-pointer`}
           >
             <Trash2 size={14} /> Clear Logs
@@ -108,7 +108,7 @@ function AuditLogs() {
       {/* Search & Filter */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex flex-col sm:flex-row gap-3">
@@ -116,7 +116,7 @@ function AuditLogs() {
             <Search
               size={16}
               className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                theme ? "text-gray-500" : "text-gray-400"
+                theme ? "text-gray-500" : "text-slate-400"
               }`}
             />
             <input
@@ -127,7 +127,7 @@ function AuditLogs() {
               className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${
                 theme
                   ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-500"
-                  : "bg-gray-50 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-400"
+                  : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
               }`}
             />
           </div>
@@ -135,10 +135,10 @@ function AuditLogs() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className={`rounded-xl border px-3 py-2 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-3 py-2 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="all">All Event Types</option>
@@ -153,17 +153,17 @@ function AuditLogs() {
       {/* Logs Table */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr
-                className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                   theme
                     ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                    : "border-gray-200 bg-gray-50 text-gray-500"
+                    : "border-slate-200 bg-slate-50/80 text-slate-600"
                 }`}
               >
                 <th className="py-3.5 px-5">Timestamp</th>
@@ -176,12 +176,12 @@ function AuditLogs() {
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
               {filteredLogs.map((log) => (
                 <tr key={log.id} className="transition hover:bg-blue-500/5">
-                  <td className="py-4 px-5 text-gray-400 font-mono text-[11px]">
+                  <td className="py-4 px-5 text-slate-400 font-mono text-[11px]">
                     {log.displayTime || log.timestamp}
                   </td>
-                  <td className="py-4 px-4 font-semibold">
+                  <td className="py-4 px-4 font-normal">
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
                         log.type === "room"
                           ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
                           : log.type === "booking"
@@ -194,15 +194,15 @@ function AuditLogs() {
                       {log.action}
                     </span>
                   </td>
-                  <td className="py-4 px-4 font-medium">
+                  <td className="py-4 px-4 font-normal">
                     <span className={theme ? "text-white" : "text-slate-900"}>
                       {log.actor}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-gray-400 font-medium">
+                  <td className="py-4 px-4 text-slate-500 dark:text-gray-400 font-normal">
                     {log.target}
                   </td>
-                  <td className="py-4 px-5 text-right text-gray-400 font-mono text-[11px]">
+                  <td className="py-4 px-5 text-right text-slate-400 font-mono text-[11px]">
                     {log.ip}
                   </td>
                 </tr>

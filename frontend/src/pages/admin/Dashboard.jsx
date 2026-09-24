@@ -184,9 +184,9 @@ function Dashboard() {
                 <AlertTriangle size={20} className="animate-bounce" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-2">
                   <span>Room Overtime Alert</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-600 text-white font-semibold">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-600 text-white font-medium">
                     {overtimeBookings.length} Active {overtimeBookings.length === 1 ? "Overrun" : "Overruns"}
                   </span>
                 </h3>
@@ -195,22 +195,22 @@ function Dashboard() {
                 </p>
                 <div className="mt-2.5 space-y-1.5">
                   {overtimeBookings.map(({ booking: b, timing }) => (
-                    <div key={b.id} className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                      <span className="font-bold text-slate-900 dark:text-white">
+                    <div key={b.id} className="flex flex-wrap items-center gap-2 text-xs font-normal">
+                      <span className="font-medium text-slate-900 dark:text-white">
                         {b.room_name}
                       </span>
                       <span className="text-gray-400">·</span>
                       <span className="text-slate-700 dark:text-gray-300">
                         "{b.title}" ({b.booker_name})
                       </span>
-                      <span className="px-2 py-0.5 rounded-md font-mono font-bold bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30">
+                      <span className="px-2 py-0.5 rounded-md font-mono font-medium bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30">
                         +{timing.overtimeMinutes}m overtime
                       </span>
                       {(user?.role === "Administrator" || user?.role === "Manager") && (
                         <button
                           type="button"
                           onClick={() => handleReleaseRoom(b.id, b.room_name)}
-                          className="px-2.5 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition shadow-xs"
+                          className="px-2.5 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-medium transition shadow-xs cursor-pointer"
                         >
                           Release Room
                         </button>
@@ -238,7 +238,7 @@ function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p
-                  className={`text-xs font-medium ${
+                  className={`text-xs font-normal ${
                     theme ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
@@ -246,7 +246,7 @@ function Dashboard() {
                 </p>
 
                 <h3
-                  className={`mt-2 text-3xl font-black tracking-tight ${
+                  className={`mt-2 text-2xl font-bold tracking-tight ${
                     theme ? "text-white" : "text-slate-900"
                   }`}
                 >
@@ -293,7 +293,7 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2
-                className={`text-base font-bold ${
+                className={`text-sm font-semibold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -321,7 +321,7 @@ function Dashboard() {
               <div key={room.name}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span
-                    className={`text-xs font-semibold ${
+                    className={`text-xs font-medium ${
                       theme ? "text-gray-200" : "text-slate-700"
                     }`}
                   >
@@ -329,7 +329,7 @@ function Dashboard() {
                   </span>
 
                   <span
-                    className={`text-xs font-medium ${
+                    className={`text-xs font-normal ${
                       theme ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
@@ -366,7 +366,7 @@ function Dashboard() {
         >
           <div>
             <h2
-              className={`text-base font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -407,13 +407,13 @@ function Dashboard() {
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span
-                    className={`text-2xl font-black ${
+                    className={`text-xl font-bold ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
                     {occupancy}%
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                  <span className="text-[10px] uppercase font-medium text-gray-400">
                     Occupied
                   </span>
                 </div>
@@ -421,15 +421,15 @@ function Dashboard() {
 
               <div className="w-full grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700 text-center">
                 <div>
-                  <p className="text-xs font-bold text-green-500">{availableRooms}</p>
+                  <p className="text-xs font-medium text-green-500">{availableRooms}</p>
                   <p className="text-[10px] text-gray-400">Available</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-orange-500">{occupiedRooms}</p>
+                  <p className="text-xs font-medium text-orange-500">{occupiedRooms}</p>
                   <p className="text-[10px] text-gray-400">Occupied</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-red-400">{maintenanceRooms}</p>
+                  <p className="text-xs font-medium text-red-400">{maintenanceRooms}</p>
                   <p className="text-[10px] text-gray-400">Maint.</p>
                 </div>
               </div>
@@ -458,7 +458,7 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2
-              className={`text-base font-bold ${
+              className={`text-sm font-semibold ${
                 theme ? "text-white" : "text-slate-900"
               }`}
             >
@@ -502,16 +502,16 @@ function Dashboard() {
                 >
                   <div className="flex items-center justify-between">
                     {timing.isLiveOvertime ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
                         ⚠️ Overtime (+{timing.overtimeMinutes}m)
                       </span>
                     ) : timing.state === "in_progress" ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                         ● In Session
                       </span>
                     ) : (
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                           theme
                             ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
                             : "bg-blue-50 text-blue-700 border border-blue-100"
@@ -522,7 +522,7 @@ function Dashboard() {
                     )}
 
                     <span
-                      className={`text-[10px] font-semibold ${
+                      className={`text-[10px] font-medium ${
                         theme ? "text-gray-400" : "text-gray-500"
                       }`}
                     >
@@ -531,7 +531,7 @@ function Dashboard() {
                   </div>
 
                   <h4
-                    className={`font-semibold text-xs mt-3 truncate ${
+                    className={`font-medium text-xs mt-3 truncate ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
@@ -552,7 +552,7 @@ function Dashboard() {
                       <button
                         type="button"
                         onClick={() => handleReleaseRoom(booking.id, booking.room_name)}
-                        className="text-[10px] font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:underline"
+                        className="text-[10px] font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:underline cursor-pointer"
                       >
                         Release Now
                       </button>

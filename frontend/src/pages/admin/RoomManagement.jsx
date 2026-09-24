@@ -264,10 +264,10 @@ function RoomManagement() {
     }
   };
 
-  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition ${
+  const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -278,7 +278,7 @@ function RoomManagement() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -297,7 +297,7 @@ function RoomManagement() {
         {hasPermission(user?.role, "create_room") && (
           <Link
             to="/room-creation"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
           >
             <Plus size={16} />
             Create Room
@@ -334,7 +334,7 @@ function RoomManagement() {
             className={`rounded-2xl border p-4 ${
               theme
                 ? "bg-slate-800 border-slate-700"
-                : "bg-white border-gray-200"
+                : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -349,7 +349,7 @@ function RoomManagement() {
               </div>
 
               <span
-                className={`text-2xl font-black ${
+                className={`text-2xl font-bold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -358,8 +358,8 @@ function RoomManagement() {
             </div>
 
             <p
-              className={`text-xs mt-3 font-medium ${
-                theme ? "text-gray-400" : "text-gray-500"
+              className={`text-xs mt-3 font-normal ${
+                theme ? "text-gray-400" : "text-slate-500"
               }`}
             >
               {item.label}
@@ -371,7 +371,7 @@ function RoomManagement() {
       {/* Search & Filters */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex flex-col md:flex-row gap-3">
@@ -379,7 +379,7 @@ function RoomManagement() {
             <Search
               size={17}
               className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                theme ? "text-gray-500" : "text-gray-400"
+                theme ? "text-gray-500" : "text-slate-400"
               }`}
             />
 
@@ -391,7 +391,7 @@ function RoomManagement() {
               className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-xs outline-none transition ${
                 theme
                   ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-500"
-                  : "bg-gray-50 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-400"
+                  : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
               }`}
             />
           </div>
@@ -399,10 +399,10 @@ function RoomManagement() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`rounded-xl border px-4 py-2.5 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-4 py-2.5 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="All">All Statuses</option>
@@ -416,19 +416,19 @@ function RoomManagement() {
             className={`flex items-center p-1 rounded-xl border shrink-0 ${
               theme
                 ? "bg-slate-900 border-slate-700"
-                : "bg-gray-50 border-gray-200"
+                : "bg-white border-slate-200"
             }`}
           >
             <button
               type="button"
               onClick={() => handleViewChange("grid")}
               title="Card view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition ${
                 viewMode === "grid"
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "bg-blue-600 text-white shadow-xs"
                   : theme
                     ? "text-gray-400 hover:text-white"
-                    : "text-gray-600 hover:text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <LayoutGrid size={15} />
@@ -438,12 +438,12 @@ function RoomManagement() {
               type="button"
               onClick={() => handleViewChange("table")}
               title="Table view"
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition ${
                 viewMode === "table"
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "bg-blue-600 text-white shadow-xs"
                   : theme
                     ? "text-gray-400 hover:text-white"
-                    : "text-gray-600 hover:text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <List size={15} />
@@ -464,12 +464,12 @@ function RoomManagement() {
           {filteredRooms.map((room) => (
             <article
               key={room.id}
-              className={`group rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+              className={`group rounded-2xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
                 openMenu === room.id ? "relative z-30" : "relative z-10"
               } ${
                 theme
                   ? "bg-slate-800 border-slate-700 hover:border-slate-600"
-                  : "bg-white border-gray-200 hover:border-blue-200"
+                  : "bg-white border-slate-200 shadow-xs hover:border-blue-200"
               }`}
             >
               {/* Room Header Banner */}
@@ -484,7 +484,7 @@ function RoomManagement() {
                   const overtimeTiming = overtimeRoomMap[String(room.id)] || overtimeRoomMap[room.name];
                   if (overtimeTiming) {
                     return (
-                      <span className="px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-black animate-pulse flex items-center gap-1">
+                      <span className="px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-medium animate-pulse flex items-center gap-1">
                         <AlertTriangle size={11} />
                         Overtime (+{overtimeTiming.overtimeMinutes}m)
                       </span>
@@ -492,7 +492,7 @@ function RoomManagement() {
                   }
                   return (
                     <span
-                      className={`px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                      className={`px-2.5 py-1 rounded-full border text-[10px] font-medium ${getStatusStyle(
                         room.status || (room.is_active === false ? "Maintenance" : "Available"),
                       )}`}
                     >
@@ -528,7 +528,7 @@ function RoomManagement() {
                         className={`absolute right-0 top-9 z-50 w-44 rounded-xl border shadow-2xl overflow-hidden ${
                           theme
                             ? "bg-slate-900 border-slate-700"
-                            : "bg-white border-gray-200"
+                            : "bg-white border-slate-200"
                         }`}
                       >
                       <button
@@ -597,7 +597,7 @@ function RoomManagement() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3
-                      className={`font-bold text-sm ${
+                      className={`font-semibold text-sm ${
                         theme ? "text-white" : "text-slate-900"
                       }`}
                     >
@@ -615,7 +615,7 @@ function RoomManagement() {
                   </div>
 
                   <div
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
                       theme
                         ? "bg-slate-700 text-gray-200"
                         : "bg-gray-100 text-slate-700"
@@ -639,7 +639,7 @@ function RoomManagement() {
                   {(room.amenities || ["WiFi"]).map((amenity) => (
                     <span
                       key={amenity}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-normal ${
                         theme
                           ? "bg-slate-700/80 text-gray-300"
                           : "bg-blue-50 text-blue-700"
@@ -662,10 +662,10 @@ function RoomManagement() {
                   <button
                     type="button"
                     onClick={() => navigate("/schedule")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition ${
                       theme
                         ? "bg-slate-700 text-gray-200 hover:bg-slate-600"
-                        : "bg-gray-100 text-slate-700 hover:bg-gray-200"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     }`}
                   >
                     <CalendarDays size={14} />
@@ -675,7 +675,7 @@ function RoomManagement() {
                   <button
                     type="button"
                     onClick={() => openEditModal(room)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition"
                   >
                     <Pencil size={14} />
                     Edit
@@ -688,18 +688,18 @@ function RoomManagement() {
       ) : (
         /* Room Table View */
         <section
-          className={`mt-6 rounded-3xl border overflow-hidden shadow-sm ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          className={`mt-6 rounded-3xl border overflow-hidden shadow-xs ${
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
           }`}
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr
-                  className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                  className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
                       ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                      : "border-gray-200 bg-gray-50 text-gray-500"
+                      : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
                   <th className="py-3.5 px-5">Room Details</th>
@@ -734,7 +734,7 @@ function RoomManagement() {
                           </div>
                           <div>
                             <span
-                              className={`font-bold text-xs block ${
+                              className={`font-medium text-xs block ${
                                 theme ? "text-white" : "text-slate-900"
                               }`}
                             >
@@ -742,7 +742,7 @@ function RoomManagement() {
                             </span>
                             <span
                               className={`text-[10px] ${
-                                theme ? "text-gray-400" : "text-gray-500"
+                                theme ? "text-gray-400" : "text-slate-500"
                               }`}
                             >
                               {room.type || "Meeting Room"}
@@ -758,7 +758,7 @@ function RoomManagement() {
                             theme ? "text-gray-300" : "text-slate-700"
                           }`}
                         >
-                          <MapPin size={13} className="text-gray-400 shrink-0" />
+                          <MapPin size={13} className="text-slate-400 shrink-0" />
                           {room.location || "Office Space"}
                         </span>
                       </td>
@@ -767,14 +767,14 @@ function RoomManagement() {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`font-medium ${
+                            className={`font-normal ${
                               theme ? "text-gray-300" : "text-slate-700"
                             }`}
                           >
                             {room.capacity} seats
                           </span>
                           <span
-                            className={`capitalize px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+                            className={`capitalize px-2 py-0.5 rounded-md text-[10px] font-medium ${
                               room.size === "large"
                                 ? theme
                                   ? "bg-purple-500/15 text-purple-400"
@@ -799,7 +799,7 @@ function RoomManagement() {
                           {(room.amenities || []).slice(0, 3).map((amenity) => (
                             <span
                               key={amenity}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-normal ${
                                 theme
                                   ? "bg-slate-700/80 text-gray-300"
                                   : "bg-blue-50 text-blue-700"
@@ -813,10 +813,10 @@ function RoomManagement() {
                           ))}
                           {(room.amenities || []).length > 3 && (
                             <span
-                              className={`px-1.5 py-0.5 rounded-md text-[10px] font-medium ${
+                              className={`px-1.5 py-0.5 rounded-md text-[10px] font-normal ${
                                 theme
                                   ? "text-gray-400 bg-slate-700/60"
-                                  : "text-gray-500 bg-gray-100"
+                                  : "text-slate-500 bg-gray-100"
                               }`}
                             >
                               +{(room.amenities || []).length - 3}
@@ -834,7 +834,7 @@ function RoomManagement() {
                           const overtimeTiming = overtimeRoomMap[String(room.id)] || overtimeRoomMap[room.name];
                           if (overtimeTiming) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-black animate-pulse">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-medium animate-pulse">
                                 <AlertTriangle size={11} />
                                 Overtime (+{overtimeTiming.overtimeMinutes}m)
                               </span>
@@ -842,7 +842,7 @@ function RoomManagement() {
                           }
                           return (
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold ${getStatusStyle(
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-medium ${getStatusStyle(
                                 roomStatus
                               )}`}
                             >
@@ -923,15 +923,15 @@ function RoomManagement() {
       {!loading && filteredRooms.length === 0 && (
         <div
           className={`mt-6 rounded-2xl border p-12 text-center ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <DoorOpen
             size={36}
-            className={`mx-auto ${theme ? "text-gray-600" : "text-gray-300"}`}
+            className={`mx-auto ${theme ? "text-gray-600" : "text-slate-300"}`}
           />
           <h3
-            className={`mt-3 text-sm font-bold ${
+            className={`mt-3 text-sm font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -939,7 +939,7 @@ function RoomManagement() {
           </h3>
           <p
             className={`text-xs mt-1 ${
-              theme ? "text-gray-400" : "text-gray-500"
+              theme ? "text-gray-400" : "text-slate-500"
             }`}
           >
             Try adjusting your search query or clear the status filter.
@@ -959,18 +959,18 @@ function RoomManagement() {
             className={`relative w-full max-w-xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                : "bg-white border border-slate-200"
             }`}
           >
             {/* Header */}
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-700" : "border-slate-100"
               }`}
             >
               <div>
                 <h2
-                  className={`text-base font-bold ${
+                  className={`text-base font-semibold ${
                     theme ? "text-white" : "text-slate-900"
                   }`}
                 >
@@ -978,7 +978,7 @@ function RoomManagement() {
                 </h2>
                 <p
                   className={`text-xs mt-0.5 ${
-                    theme ? "text-gray-400" : "text-gray-500"
+                    theme ? "text-gray-400" : "text-slate-500"
                   }`}
                 >
                   Update room capacity, location, and equipment.
@@ -991,7 +991,7 @@ function RoomManagement() {
                 className={`p-2 rounded-lg transition ${
                   theme
                     ? "text-gray-400 hover:text-white hover:bg-slate-700"
-                    : "text-gray-400 hover:text-slate-900 hover:bg-gray-100"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 <X size={18} />
@@ -1002,7 +1002,7 @@ function RoomManagement() {
             <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -1022,7 +1022,7 @@ function RoomManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -1042,7 +1042,7 @@ function RoomManagement() {
 
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -1064,7 +1064,7 @@ function RoomManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -1083,7 +1083,7 @@ function RoomManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -1102,7 +1102,7 @@ function RoomManagement() {
               {/* Amenities Selector */}
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-2 ${
+                  className={`block text-xs font-medium mb-2 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -1121,7 +1121,7 @@ function RoomManagement() {
                             ? "bg-blue-600 text-white border-blue-600"
                             : theme
                               ? "bg-slate-900 border-slate-700 text-gray-300 hover:border-slate-500"
-                              : "bg-gray-50 border-gray-200 text-slate-700 hover:border-gray-300"
+                              : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
                         }`}
                       >
                         {isSelected && <Check size={12} />}
@@ -1135,16 +1135,16 @@ function RoomManagement() {
               {/* Modal Actions */}
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-700" : "border-slate-100"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setEditingRoom(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -1152,7 +1152,7 @@ function RoomManagement() {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition"
                 >
                   Save Changes
                 </button>

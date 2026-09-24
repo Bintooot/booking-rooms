@@ -208,7 +208,7 @@ function UserManagement() {
   const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -219,7 +219,7 @@ function UserManagement() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -236,7 +236,7 @@ function UserManagement() {
 
         <Link
           to="/user-creation"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
         >
           <UserPlus size={16} />
           Create Team Member
@@ -254,7 +254,7 @@ function UserManagement() {
           <div
             key={kpi.label}
             className={`rounded-2xl border p-4 ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+              theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -266,7 +266,7 @@ function UserManagement() {
                 {kpi.icon}
               </div>
               <span
-                className={`text-2xl font-black ${
+                className={`text-2xl font-bold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -274,8 +274,8 @@ function UserManagement() {
               </span>
             </div>
             <p
-              className={`text-xs mt-3 font-medium ${
-                theme ? "text-gray-400" : "text-gray-500"
+              className={`text-xs mt-3 font-normal ${
+                theme ? "text-gray-400" : "text-slate-500"
               }`}
             >
               {kpi.label}
@@ -287,7 +287,7 @@ function UserManagement() {
       {/* Search & Filters */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex flex-col sm:flex-row gap-3">
@@ -295,7 +295,7 @@ function UserManagement() {
             <Search
               size={16}
               className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                theme ? "text-gray-500" : "text-gray-400"
+                theme ? "text-gray-500" : "text-slate-400"
               }`}
             />
             <input
@@ -306,7 +306,7 @@ function UserManagement() {
               className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-xs outline-none transition ${
                 theme
                   ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-500"
-                  : "bg-gray-50 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-400"
+                  : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
               }`}
             />
           </div>
@@ -314,10 +314,10 @@ function UserManagement() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className={`rounded-xl border px-4 py-2.5 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-4 py-2.5 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="All">All Roles</option>
@@ -331,7 +331,7 @@ function UserManagement() {
       {/* User Table */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {loading ? (
@@ -341,10 +341,10 @@ function UserManagement() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr
-                  className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                  className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
                       ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                      : "border-gray-200 bg-gray-50 text-gray-500"
+                      : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
                   <th className="py-3.5 px-5">Member</th>
@@ -370,7 +370,7 @@ function UserManagement() {
                       <td className="py-4 px-5">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-medium text-xs shrink-0 ${
                               theme
                                 ? "bg-blue-500/15 text-blue-400"
                                 : "bg-blue-50 text-blue-600"
@@ -380,7 +380,7 @@ function UserManagement() {
                           </div>
                           <div className="min-w-0">
                             <p
-                              className={`font-bold ${
+                              className={`font-medium ${
                                 theme ? "text-white" : "text-slate-900"
                               }`}
                             >
@@ -388,7 +388,7 @@ function UserManagement() {
                             </p>
                             <p
                               className={`text-[11px] flex items-center gap-1 mt-0.5 ${
-                                theme ? "text-gray-400" : "text-gray-500"
+                                theme ? "text-gray-400" : "text-slate-500"
                               }`}
                             >
                               <Mail size={11} />
@@ -400,7 +400,7 @@ function UserManagement() {
 
                       <td className="py-4 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium border ${
                             user.role?.toLowerCase().includes("admin")
                               ? theme
                                 ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
@@ -411,7 +411,7 @@ function UserManagement() {
                                   : "bg-blue-50 text-blue-700 border-blue-200"
                                 : theme
                                   ? "bg-slate-700 text-gray-300 border-slate-600"
-                                  : "bg-gray-100 text-slate-700 border-gray-200"
+                                  : "bg-slate-100 text-slate-700 border-slate-200"
                           }`}
                         >
                           <ShieldCheck size={11} />
@@ -420,13 +420,13 @@ function UserManagement() {
                       </td>
 
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-green-500 font-semibold">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-green-500 font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                           Active
                         </span>
                       </td>
 
-                      <td className="py-4 px-4 text-gray-400 text-xs">
+                      <td className="py-4 px-4 text-slate-400 text-xs">
                         {user.created_at
                           ? new Date(user.created_at).toLocaleDateString()
                           : "Active"}
@@ -493,16 +493,16 @@ function UserManagement() {
             className={`relative w-full max-w-md rounded-3xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                : "bg-white border border-slate-200"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-700" : "border-slate-100"
               }`}
             >
               <h3
-                className={`text-base font-bold ${
+                className={`text-base font-semibold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -513,7 +513,7 @@ function UserManagement() {
                 type="button"
                 onClick={() => setEditingUser(null)}
                 className={`p-1.5 rounded-lg transition ${
-                  theme ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-slate-900"
+                  theme ? "text-gray-400 hover:text-white" : "text-slate-400 hover:text-slate-900"
                 }`}
               >
                 <X size={18} />
@@ -523,7 +523,7 @@ function UserManagement() {
             <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -540,7 +540,7 @@ function UserManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -557,7 +557,7 @@ function UserManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -576,7 +576,7 @@ function UserManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -596,16 +596,16 @@ function UserManagement() {
 
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-700" : "border-slate-100"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -613,7 +613,7 @@ function UserManagement() {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition"
                 >
                   Save Changes
                 </button>
@@ -635,12 +635,12 @@ function UserManagement() {
             className={`relative w-full max-w-md rounded-3xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                : "bg-white border border-slate-200"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-700" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -649,7 +649,7 @@ function UserManagement() {
                 </div>
                 <div>
                   <h3
-                    className={`text-base font-bold ${
+                    className={`text-base font-semibold ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
@@ -665,7 +665,7 @@ function UserManagement() {
                 type="button"
                 onClick={() => setPasswordUser(null)}
                 className={`p-1.5 rounded-lg transition ${
-                  theme ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-slate-900"
+                  theme ? "text-gray-400 hover:text-white" : "text-slate-400 hover:text-slate-900"
                 }`}
               >
                 <X size={18} />
@@ -675,7 +675,7 @@ function UserManagement() {
             <form onSubmit={handleResetPassword} className="p-6 space-y-4">
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -696,7 +696,7 @@ function UserManagement() {
                     className={`w-full rounded-xl border pl-10 pr-10 py-2.5 text-xs outline-none transition ${
                       theme
                         ? "bg-slate-900 border-slate-700 text-white focus:border-amber-400"
-                        : "bg-white border-gray-200 text-slate-900 focus:border-amber-500"
+                        : "bg-white border-slate-300 text-slate-800 focus:border-amber-500"
                     }`}
                   />
                   <button
@@ -711,7 +711,7 @@ function UserManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -732,7 +732,7 @@ function UserManagement() {
                     className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-xs outline-none transition ${
                       theme
                         ? "bg-slate-900 border-slate-700 text-white focus:border-amber-400"
-                        : "bg-white border-gray-200 text-slate-900 focus:border-amber-500"
+                        : "bg-white border-slate-300 text-slate-800 focus:border-amber-500"
                     }`}
                   />
                 </div>
@@ -740,16 +740,16 @@ function UserManagement() {
 
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-700" : "border-slate-100"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setPasswordUser(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -758,7 +758,7 @@ function UserManagement() {
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-md transition disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium shadow-sm transition disabled:opacity-50"
                 >
                   {passwordLoading ? "Updating..." : "Update Password"}
                 </button>

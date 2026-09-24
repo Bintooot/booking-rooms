@@ -292,7 +292,7 @@ function BookingManagement() {
   const inputClass = `w-full rounded-xl border px-4 py-2.5 text-xs outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -303,7 +303,7 @@ function BookingManagement() {
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2
-            className={`text-lg font-bold ${
+            className={`text-lg font-semibold ${
               theme ? "text-white" : "text-slate-900"
             }`}
           >
@@ -321,7 +321,7 @@ function BookingManagement() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-md shadow-blue-600/20"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition shadow-sm"
         >
           <Plus size={16} />
           New Reservation
@@ -339,7 +339,7 @@ function BookingManagement() {
           <div
             key={kpi.label}
             className={`rounded-2xl border p-4 ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+              theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -351,7 +351,7 @@ function BookingManagement() {
                 {kpi.icon}
               </div>
               <span
-                className={`text-2xl font-black ${
+                className={`text-2xl font-bold ${
                   theme ? "text-white" : "text-slate-900"
                 }`}
               >
@@ -359,8 +359,8 @@ function BookingManagement() {
               </span>
             </div>
             <p
-              className={`text-xs mt-3 font-medium ${
-                theme ? "text-gray-400" : "text-gray-500"
+              className={`text-xs mt-3 font-normal ${
+                theme ? "text-gray-400" : "text-slate-500"
               }`}
             >
               {kpi.label}
@@ -372,7 +372,7 @@ function BookingManagement() {
       {/* Search & Filter Bar */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -380,7 +380,7 @@ function BookingManagement() {
             <Search
               size={16}
               className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                theme ? "text-gray-500" : "text-gray-400"
+                theme ? "text-gray-500" : "text-slate-400"
               }`}
             />
             <input
@@ -391,7 +391,7 @@ function BookingManagement() {
               className={`w-full rounded-xl border py-2 pl-9 pr-3 text-xs outline-none transition ${
                 theme
                   ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-500"
-                  : "bg-gray-50 border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-400"
+                  : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-blue-400"
               }`}
             />
           </div>
@@ -399,10 +399,10 @@ function BookingManagement() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`rounded-xl border px-3 py-2 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-3 py-2 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="All">All Statuses</option>
@@ -416,10 +416,10 @@ function BookingManagement() {
           <select
             value={roomFilter}
             onChange={(e) => setRoomFilter(e.target.value)}
-            className={`rounded-xl border px-3 py-2 text-xs font-medium outline-none ${
+            className={`rounded-xl border px-3 py-2 text-xs font-normal outline-none ${
               theme
                 ? "bg-slate-900 border-slate-700 text-gray-200"
-                : "bg-gray-50 border-gray-200 text-slate-700"
+                : "bg-white border-slate-200 text-slate-700"
             }`}
           >
             <option value="All">All Rooms</option>
@@ -435,7 +435,7 @@ function BookingManagement() {
       {/* Bookings Table / List */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {loading ? (
@@ -445,10 +445,10 @@ function BookingManagement() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr
-                  className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                  className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
                       ? "border-slate-700 bg-slate-900/40 text-gray-400"
-                      : "border-gray-200 bg-gray-50 text-gray-500"
+                      : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
                   <th className="py-3.5 px-5">Meeting Details</th>
@@ -535,7 +535,7 @@ function BookingManagement() {
                         if (booking.status === "cancelled") {
                           return (
                             <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-medium border ${
                                 theme
                                   ? "bg-red-500/10 text-red-400 border-red-500/20"
                                   : "bg-red-50 text-red-700 border-red-200"
@@ -549,11 +549,11 @@ function BookingManagement() {
                         if (timing.isLiveOvertime) {
                           return (
                             <div className="flex flex-col gap-1">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 animate-pulse">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium border border-rose-500/40 bg-rose-500/20 text-rose-600 dark:text-rose-300 animate-pulse">
                                 <AlertTriangle size={12} />
                                 OVERTIME (+{timing.overtimeMinutes}m)
                               </span>
-                              <span className="text-[10px] text-rose-500 font-semibold">
+                              <span className="text-[10px] text-rose-500 font-medium">
                                 Exceeded schedule
                               </span>
                             </div>
@@ -562,7 +562,7 @@ function BookingManagement() {
 
                         if (timing.state === "in_progress") {
                           return (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                               IN SESSION
                             </span>
@@ -572,11 +572,11 @@ function BookingManagement() {
                         if (timing.state === "completed") {
                           return (
                             <div className="flex flex-col gap-0.5">
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold border border-slate-400/20 bg-slate-500/10 text-slate-500 dark:text-slate-400">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-medium border border-slate-400/20 bg-slate-500/10 text-slate-500 dark:text-slate-400">
                                 COMPLETED
                               </span>
                               {timing.overtimeMinutes > 0 && (
-                                <span className="text-[10px] text-amber-500 font-medium">
+                                <span className="text-[10px] text-amber-500 font-normal">
                                   +{timing.overtimeMinutes}m OT recorded
                                 </span>
                               )}
@@ -586,7 +586,7 @@ function BookingManagement() {
 
                         return (
                           <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-medium border ${
                               theme
                                 ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                                 : "bg-blue-50 text-blue-700 border-blue-200"
@@ -622,7 +622,7 @@ function BookingManagement() {
                                   type="button"
                                   onClick={() => handleCheckIn(booking.id, booking.title)}
                                   title="Check In (Start Session)"
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition"
                                 >
                                   <LogIn size={13} />
                                   <span>Check In</span>
@@ -638,7 +638,7 @@ function BookingManagement() {
                                   type="button"
                                   onClick={() => handleCheckOut(booking.id, booking.title)}
                                   title="Release Room / Check Out"
-                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition shadow-xs ${
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition shadow-xs ${
                                     timing.isLiveOvertime
                                       ? "bg-rose-600 hover:bg-rose-700 text-white"
                                       : "bg-blue-600 hover:bg-blue-700 text-white"
@@ -721,7 +721,7 @@ function BookingManagement() {
             >
               <div>
                 <h3
-                  className={`text-base font-bold ${
+                  className={`text-base font-semibold ${
                     theme ? "text-white" : "text-slate-900"
                   }`}
                 >
@@ -752,7 +752,7 @@ function BookingManagement() {
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -774,7 +774,7 @@ function BookingManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -792,7 +792,7 @@ function BookingManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -811,7 +811,7 @@ function BookingManagement() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -828,7 +828,7 @@ function BookingManagement() {
 
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -848,7 +848,7 @@ function BookingManagement() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -865,7 +865,7 @@ function BookingManagement() {
 
                 <div>
                   <label
-                    className={`block text-xs font-semibold mb-1.5 ${
+                    className={`block text-xs font-medium mb-1.5 ${
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
@@ -883,7 +883,7 @@ function BookingManagement() {
 
               <div>
                 <label
-                  className={`block text-xs font-semibold mb-1.5 ${
+                  className={`block text-xs font-medium mb-1.5 ${
                     theme ? "text-gray-300" : "text-slate-700"
                   }`}
                 >
@@ -906,7 +906,7 @@ function BookingManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
                       : "text-slate-600 hover:bg-gray-100"
@@ -917,7 +917,7 @@ function BookingManagement() {
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md transition"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition"
                 >
                   Create Reservation
                 </button>

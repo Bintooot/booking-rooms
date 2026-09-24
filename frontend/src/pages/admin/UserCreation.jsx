@@ -108,7 +108,7 @@ function UserCreation() {
   const inputClass = `w-full rounded-lg border px-4 py-3 text-sm outline-none transition ${
     theme
       ? "bg-slate-900 border-slate-700 text-white placeholder:text-gray-500 focus:border-blue-400"
-      : "bg-white border-gray-200 text-slate-900 placeholder:text-gray-400 focus:border-blue-500"
+      : "bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 focus:border-blue-500"
   }`;
 
   return (
@@ -150,7 +150,7 @@ function UserCreation() {
       {/* User grid */}
       <section
         className={`relative rounded-2xl border p-6 overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {/* Background decoration */}
@@ -165,10 +165,10 @@ function UserCreation() {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className={`group min-h-62.5 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+            className={`group min-h-62.5 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer ${
               theme
                 ? "border-slate-600 hover:border-blue-400 hover:bg-blue-500/5"
-                : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/50"
+                : "border-slate-300 hover:border-blue-400 hover:bg-blue-50/50"
             }`}
           >
             <div
@@ -201,7 +201,7 @@ function UserCreation() {
 
             <p
               className={`text-xs text-center mt-2 max-w-45 ${
-                theme ? "text-gray-500" : "text-gray-400"
+                theme ? "text-gray-500" : "text-slate-500"
               }`}
             >
               Create an account and assign access permissions.
@@ -220,16 +220,16 @@ function UserCreation() {
             return (
               <div
                 key={user.id}
-                className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                   theme
                     ? "bg-slate-900/60 border-slate-700 hover:border-slate-600"
-                    : "bg-gray-50/50 border-gray-200 hover:border-blue-200"
+                    : "bg-white border-slate-200 shadow-xs hover:border-blue-200"
                 }`}
               >
                 <div className="flex items-start justify-between">
                   {/* Avatar */}
                   <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-bold ${
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-medium ${
                       theme
                         ? "bg-blue-500/10 text-blue-400"
                         : "bg-blue-50 text-blue-600"
@@ -243,17 +243,17 @@ function UserCreation() {
                     className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${
                       theme
                         ? "bg-green-500/10 text-green-400"
-                        : "bg-green-50 text-green-600"
+                        : "bg-green-50 text-green-700"
                     }`}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                     Active
                   </span>
                 </div>
 
                 <div className="mt-6">
                   <h3
-                    className={`font-semibold ${
+                    className={`font-medium ${
                       theme ? "text-white" : "text-slate-900"
                     }`}
                   >
@@ -262,7 +262,7 @@ function UserCreation() {
 
                   <p
                     className={`text-xs mt-1 truncate ${
-                      theme ? "text-gray-500" : "text-gray-400"
+                      theme ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     {user.email}
@@ -317,13 +317,13 @@ function UserCreation() {
             className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-2xl shadow-2xl ${
               theme
                 ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                : "bg-white border border-slate-200"
             }`}
           >
             {/* Modal header */}
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-700" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-4">
@@ -517,7 +517,7 @@ function UserCreation() {
               {/* Actions */}
               <div
                 className={`flex justify-end gap-3 pt-5 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
+                  theme ? "border-slate-700" : "border-slate-100"
                 }`}
               >
                 <button
@@ -526,10 +526,10 @@ function UserCreation() {
                     setShowForm(false);
                     resetForm();
                   }}
-                  className={`px-5 py-2.5 rounded-lg text-sm font-medium ${
+                  className={`px-5 py-2.5 rounded-xl text-sm font-medium ${
                     theme
                       ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
+                      : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   Cancel
@@ -538,7 +538,7 @@ function UserCreation() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <UserPlus size={16} />
 

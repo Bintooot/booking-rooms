@@ -190,9 +190,9 @@ function Landing() {
               <DoorOpen size={22} className="stroke-[2.2]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight flex items-center gap-1.5">
+              <span className="text-xl font-bold tracking-tight flex items-center gap-1.5">
                 Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                   v1.2
                 </span>
               </span>
@@ -255,12 +255,12 @@ function Landing() {
             {isAuthenticated ? (
               <div className="flex items-center gap-2.5">
                 <div className="hidden sm:flex flex-col text-right">
-                  <span className="text-xs font-semibold leading-none">{user?.name || "User"}</span>
+                  <span className="text-xs font-medium leading-none">{user?.name || "User"}</span>
                   <span className="text-[10px] text-blue-500 font-medium">{user?.role || "Member"}</span>
                 </div>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20 active:scale-95 transition"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20 active:scale-95 transition"
                 >
                   <span>Dashboard</span>
                   <ArrowRight size={15} />
@@ -270,7 +270,7 @@ function Landing() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition ${
+                  className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition ${
                     theme
                       ? "border-slate-700 hover:border-slate-600 text-slate-200 hover:bg-slate-900"
                       : "border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -281,7 +281,7 @@ function Landing() {
                 </Link>
                 <Link
                   to="/login"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 active:scale-95 transition"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 active:scale-95 transition"
                 >
                   <span>Get Started</span>
                   <ArrowRight size={15} />
@@ -347,7 +347,7 @@ function Landing() {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 text-sm font-semibold rounded-xl bg-blue-600 text-white"
+                className="w-full text-center py-2.5 text-sm font-medium rounded-xl bg-blue-600 text-white"
               >
                 {isAuthenticated ? "Open Dashboard" : "Sign In / Launch Portal"}
               </Link>
@@ -365,13 +365,13 @@ function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-6">
               <Sparkles size={14} className="animate-pulse" />
               <span>Smart Space & Room Reservation Engine</span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.15] mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] mb-6">
               Seamless Room Booking.{" "}
               <span className="bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Zero Scheduling Conflicts.
@@ -388,14 +388,14 @@ function Landing() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-14">
               <Link
                 to={isAuthenticated ? "/dashboard" : "/login"}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base shadow-xl shadow-blue-500/25 active:scale-95 transition"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-base shadow-xl shadow-blue-500/25 active:scale-95 transition"
               >
                 <span>{isAuthenticated ? "Go to Dashboard" : "Access Booking Portal"}</span>
                 <ArrowRight size={18} />
               </Link>
               <a
                 href="#rooms"
-                className={`w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl font-semibold text-base border transition ${
+                className={`w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl font-medium text-base border transition ${
                   theme
                     ? "bg-slate-900/80 border-slate-800 text-slate-200 hover:bg-slate-800"
                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm"
@@ -410,36 +410,36 @@ function Landing() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
               <div
                 className={`p-4 rounded-2xl border ${
-                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200/80 shadow-xs"
+                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200 shadow-xs"
                 }`}
               >
-                <div className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">100%</div>
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">100%</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                   Conflict-Free Guarantee
                 </div>
               </div>
               <div
                 className={`p-4 rounded-2xl border ${
-                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200/80 shadow-xs"
+                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200 shadow-xs"
                 }`}
               >
-                <div className="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">&lt; 30s</div>
+                <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400">&lt; 30s</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Average Reservation</div>
               </div>
               <div
                 className={`p-4 rounded-2xl border ${
-                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200/80 shadow-xs"
+                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200 shadow-xs"
                 }`}
               >
-                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">3-Tier</div>
+                <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">3-Tier</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">RBAC & Audit Trail</div>
               </div>
               <div
                 className={`p-4 rounded-2xl border ${
-                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200/80 shadow-xs"
+                  theme ? "bg-slate-900/60 border-slate-800/80" : "bg-white border-slate-200 shadow-xs"
                 }`}
               >
-                <div className="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">Live</div>
+                <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">Live</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Real-Time Sync</div>
               </div>
             </div>
@@ -460,7 +460,7 @@ function Landing() {
                   <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                   <span className="ml-2 text-xs font-mono text-slate-400">portal.spacesync.internal/schedule</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                   <span>Real-Time Engine Active</span>
                 </div>
@@ -470,20 +470,20 @@ function Landing() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                   className={`p-4 rounded-2xl border ${
-                    theme ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                    theme ? "bg-slate-950/60 border-slate-800" : "bg-white border-slate-200 shadow-xs"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Boardroom A</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Boardroom A</span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                       Available
                     </span>
                   </div>
-                  <h4 className="font-bold text-sm mb-1">Executive Boardroom</h4>
+                  <h4 className="font-semibold text-sm mb-1">Executive Boardroom</h4>
                   <p className="text-xs text-slate-500 mb-3">Capacity: 18 • Level 4</p>
                   <div className="space-y-2 text-xs">
                     <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-between">
-                      <span className="font-semibold">09:00 - 10:30</span>
+                      <span className="font-medium">09:00 - 10:30</span>
                       <span>Product Roadmap</span>
                     </div>
                     <div className="p-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 flex items-center justify-center">
@@ -494,24 +494,24 @@ function Landing() {
 
                 <div
                   className={`p-4 rounded-2xl border ${
-                    theme ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                    theme ? "bg-slate-950/60 border-slate-800" : "bg-white border-slate-200 shadow-xs"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Hub 204</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Hub 204</span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 border border-blue-500/20">
                       In Use
                     </span>
                   </div>
-                  <h4 className="font-bold text-sm mb-1">Design ThinkTank</h4>
+                  <h4 className="font-semibold text-sm mb-1">Design ThinkTank</h4>
                   <p className="text-xs text-slate-500 mb-3">Capacity: 8 • Level 2</p>
                   <div className="space-y-2 text-xs">
                     <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-between">
-                      <span className="font-semibold">10:00 - 11:30</span>
+                      <span className="font-medium">10:00 - 11:30</span>
                       <span>UX Brainstorm</span>
                     </div>
                     <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-between">
-                      <span className="font-semibold">14:00 - 15:00</span>
+                      <span className="font-medium">14:00 - 15:00</span>
                       <span>Sprint Review</span>
                     </div>
                   </div>
@@ -519,23 +519,23 @@ function Landing() {
 
                 <div
                   className={`p-4 rounded-2xl border ${
-                    theme ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                    theme ? "bg-slate-950/60 border-slate-800" : "bg-white border-slate-200 shadow-xs"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pod 03</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Pod 03</span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                       Available
                     </span>
                   </div>
-                  <h4 className="font-bold text-sm mb-1">Quiet Focus Pod</h4>
+                  <h4 className="font-semibold text-sm mb-1">Quiet Focus Pod</h4>
                   <p className="text-xs text-slate-500 mb-3">Capacity: 2 • Level 3</p>
                   <div className="space-y-2 text-xs">
                     <div className="p-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 flex items-center justify-center">
                       + Free All Day
                     </div>
                     <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                      <span className="font-semibold">16:00 - 17:00</span>
+                      <span className="font-medium">16:00 - 17:00</span>
                       <span>1-on-1 Sync</span>
                     </div>
                   </div>
@@ -551,11 +551,11 @@ function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mb-3">
                 <Building2 size={14} />
                 <span>Flexible Corporate Facilities</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
                 Explore Available Rooms & Spaces
               </h2>
               <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xl">
@@ -573,7 +573,7 @@ function Landing() {
                 <button
                   key={tab}
                   onClick={() => setSelectedFilter(tab)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
                     selectedFilter === tab
                       ? "bg-blue-600 text-white shadow-xs"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -591,7 +591,7 @@ function Landing() {
               <div
                 key={room.id}
                 className={`rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                  theme ? "bg-slate-900 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+                  theme ? "bg-slate-900 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
                 }`}
               >
                 <div>
@@ -603,7 +603,7 @@ function Landing() {
                       <DoorOpen size={24} />
                     </div>
                     <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
                         room.badgeColor || "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                       }`}
                     >
@@ -615,12 +615,12 @@ function Landing() {
                   <div className="p-6">
                     <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
                       <span className="font-medium">{room.location}</span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                      <span className="font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1">
                         <Users size={14} /> Up to {room.capacity} people
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold tracking-tight mb-2">{room.name}</h3>
+                    <h3 className="text-lg font-semibold tracking-tight mb-2">{room.name}</h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
                       {room.description}
                     </p>
@@ -656,7 +656,7 @@ function Landing() {
                 <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800/80">
                   <button
                     onClick={() => handleRoomAction(room)}
-                    className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-98 transition cursor-pointer"
+                    className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-98 transition cursor-pointer"
                   >
                     <span>{isAuthenticated ? "Book This Space" : "Sign In to Reserve"}</span>
                     <ArrowRight size={14} />
@@ -669,7 +669,7 @@ function Landing() {
           <div className="mt-12 text-center">
             <Link
               to={isAuthenticated ? "/room-management" : "/login"}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
             >
               <span>View full room registry & live availability matrix</span>
               <ArrowRight size={16} />
@@ -681,11 +681,11 @@ function Landing() {
       {/* 4. CORE FEATURES GRID SECTION */}
       <section id="features" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 mb-4">
             <Layers size={14} />
             <span>Enterprise Feature Suite</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             Engineered for Modern Enterprise Workspaces
           </h2>
           <p className="mt-3 text-base text-slate-600 dark:text-slate-400">
@@ -697,13 +697,13 @@ function Landing() {
           {/* Feature 1 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 border border-blue-500/20">
               <CalendarCheck size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Conflict-Free Scheduling</h3>
+            <h3 className="text-lg font-semibold mb-2">Conflict-Free Scheduling</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Real-time validation checks every single millisecond. Overlapping reservations are automatically detected and blocked before they happen.
             </p>
@@ -712,13 +712,13 @@ function Landing() {
           {/* Feature 2 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 border border-indigo-500/20">
               <ShieldCheck size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Multi-Tier RBAC Security</h3>
+            <h3 className="text-lg font-semibold mb-2">Multi-Tier RBAC Security</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Granular permission matrix distinguishing Administrators, Managers, and Employees. Sensitive settings and user creation stay protected.
             </p>
@@ -727,13 +727,13 @@ function Landing() {
           {/* Feature 3 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-5 border border-purple-500/20">
               <Sliders size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Custom Reservation Policies</h3>
+            <h3 className="text-lg font-semibold mb-2">Custom Reservation Policies</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Enforce enterprise rules like maximum meeting length, advance booking limits, buffer cleaning windows, and automatic cancellation triggers.
             </p>
@@ -742,13 +742,13 @@ function Landing() {
           {/* Feature 4 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 border border-emerald-500/20">
               <FileText size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Live Compliance Audit Trail</h3>
+            <h3 className="text-lg font-semibold mb-2">Live Compliance Audit Trail</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Track every room creation, user modification, and schedule change with timestamped audit logs and instant one-click CSV export.
             </p>
@@ -757,13 +757,13 @@ function Landing() {
           {/* Feature 5 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 border border-amber-500/20">
               <BarChart3 size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Peak Demand Analytics</h3>
+            <h3 className="text-lg font-semibold mb-2">Peak Demand Analytics</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Identify your most popular meeting rooms, peak hours of the day, busiest days of the week, and calculate total meeting hours with ease.
             </p>
@@ -772,13 +772,13 @@ function Landing() {
           {/* Feature 6 */}
           <div
             className={`p-7 rounded-3xl border transition-all hover:shadow-lg ${
-              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+              theme ? "bg-slate-900/60 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
             }`}
           >
             <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-5 border border-rose-500/20">
               <Bell size={24} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Real-Time Alerts & Center</h3>
+            <h3 className="text-lg font-semibold mb-2">Real-Time Alerts & Center</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Stay informed with real-time notification badges for newly assigned bookings, schedule reschedules, and room maintenance status updates.
             </p>
@@ -793,11 +793,11 @@ function Landing() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-3">
               <Zap size={14} />
               <span>Simple 3-Step Process</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               How SpaceSync Operates
             </h2>
             <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-400">
@@ -809,11 +809,11 @@ function Landing() {
             {/* Step 1 */}
             <div
               className={`p-8 rounded-3xl border relative ${
-                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
               }`}
             >
-              <div className="text-5xl font-black text-blue-500/20 mb-4">01</div>
-              <h3 className="text-xl font-bold mb-2">Discover Space</h3>
+              <div className="text-5xl font-bold text-blue-500/20 mb-4">01</div>
+              <h3 className="text-xl font-semibold mb-2">Discover Space</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Filter rooms by attendee capacity, location wing, and required amenities like 4K screens, video setups, or whiteboards.
               </p>
@@ -822,11 +822,11 @@ function Landing() {
             {/* Step 2 */}
             <div
               className={`p-8 rounded-3xl border relative ${
-                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
               }`}
             >
-              <div className="text-5xl font-black text-indigo-500/20 mb-4">02</div>
-              <h3 className="text-xl font-bold mb-2">Instant Conflict Check</h3>
+              <div className="text-5xl font-bold text-indigo-500/20 mb-4">02</div>
+              <h3 className="text-xl font-semibold mb-2">Instant Conflict Check</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Select your meeting start and end times. The system performs instant cross-checks against verified bookings and confirms slot availability.
               </p>
@@ -835,11 +835,11 @@ function Landing() {
             {/* Step 3 */}
             <div
               className={`p-8 rounded-3xl border relative ${
-                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
               }`}
             >
-              <div className="text-5xl font-black text-emerald-500/20 mb-4">03</div>
-              <h3 className="text-xl font-bold mb-2">Collaborate & Track</h3>
+              <div className="text-5xl font-bold text-emerald-500/20 mb-4">03</div>
+              <h3 className="text-xl font-semibold mb-2">Collaborate & Track</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Receive instant confirmation, review in the interactive timeline schedule, and monitor updates directly from your dashboard.
               </p>
@@ -852,11 +852,11 @@ function Landing() {
       <section id="benefits" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
               <CheckCircle2 size={14} />
               <span>Proven Organizational Impact</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
               Designed to Eliminate Meeting Friction Across Your Company
             </h2>
             <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -870,7 +870,7 @@ function Landing() {
                   <Check size={14} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold">Zero Wasted Staff Time</h4>
+                  <h4 className="text-sm font-semibold">Zero Wasted Staff Time</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Eliminate an estimated 4+ hours per employee every month spent hunting for free spaces.
                   </p>
@@ -882,7 +882,7 @@ function Landing() {
                   <Check size={14} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold">Maximized Space Utilization</h4>
+                  <h4 className="text-sm font-semibold">Maximized Space Utilization</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Analyze room usage patterns to reallocate underutilized rooms and plan future office expansions.
                   </p>
@@ -894,7 +894,7 @@ function Landing() {
                   <Check size={14} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold">Full Audit Transparency</h4>
+                  <h4 className="text-sm font-semibold">Full Audit Transparency</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Complete records of who reserved rooms, meeting durations, and cancellations for compliance.
                   </p>
@@ -911,7 +911,7 @@ function Landing() {
                   : "bg-linear-to-br from-blue-50 via-indigo-50/50 to-white border-slate-200"
               }`}
             >
-              <h3 className="text-xl font-bold mb-6">Why Teams Choose SpaceSync</h3>
+              <h3 className="text-xl font-semibold mb-6">Why Teams Choose SpaceSync</h3>
 
               <div className="space-y-4">
                 <div
@@ -920,8 +920,8 @@ function Landing() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Fast Turnkey Setup</span>
-                    <span className="text-xs font-semibold text-blue-500">Immediate</span>
+                    <span className="text-sm font-medium">Fast Turnkey Setup</span>
+                    <span className="text-xs font-medium text-blue-500">Immediate</span>
                   </div>
                   <p className="text-xs text-slate-500">
                     Ready-to-use demo accounts for Admins & Managers allow you to test every workflow immediately.
@@ -934,8 +934,8 @@ function Landing() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Automated Conflict Detection</span>
-                    <span className="text-xs font-semibold text-emerald-500">100% Real-time</span>
+                    <span className="text-sm font-medium">Automated Conflict Detection</span>
+                    <span className="text-xs font-medium text-emerald-500">100% Real-time</span>
                   </div>
                   <p className="text-xs text-slate-500">
                     No more double booked boardrooms during important client presentations.
@@ -948,8 +948,8 @@ function Landing() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Dark & Light Mode Built-in</span>
-                    <span className="text-xs font-semibold text-purple-500">Modern UX</span>
+                    <span className="text-sm font-medium">Dark & Light Mode Built-in</span>
+                    <span className="text-xs font-medium text-purple-500">Modern UX</span>
                   </div>
                   <p className="text-xs text-slate-500">
                     Fluid design optimized for desktop monitors, mobile devices, and boardroom kiosk screens.
@@ -968,11 +968,11 @@ function Landing() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 mb-3">
               <HelpCircle size={14} />
               <span>Frequently Asked Questions</span>
             </div>
-            <h2 className="text-3xl font-black tracking-tight">Got Questions? We&apos;ve Got Answers.</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Got Questions? We&apos;ve Got Answers.</h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               Everything you need to know about setting up and using the SpaceSync platform.
             </p>
@@ -992,7 +992,7 @@ function Landing() {
                     onClick={() => setActiveFaq(isOpen ? -1 : index)}
                     className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer"
                   >
-                    <span className="font-bold text-sm sm:text-base">{faq.q}</span>
+                    <span className="font-medium text-sm sm:text-base">{faq.q}</span>
                     <span className="p-1 rounded-lg text-slate-400 hover:text-slate-200 transition">
                       {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </span>
@@ -1023,7 +1023,7 @@ function Landing() {
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
               Ready to Modernize Your Room Reservations?
             </h2>
             <p className="text-blue-100/80 text-sm sm:text-base mb-8 leading-relaxed">
@@ -1033,13 +1033,13 @@ function Landing() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 to="/login"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-sm shadow-lg active:scale-95 transition"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-medium text-sm shadow-lg active:scale-95 transition"
               >
                 Launch Booking Portal
               </Link>
               <a
                 href="#rooms"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm backdrop-blur-md active:scale-95 transition"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-sm backdrop-blur-md active:scale-95 transition"
               >
                 Browse Room Catalog
               </a>
@@ -1061,7 +1061,7 @@ function Landing() {
               <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
                 <DoorOpen size={20} />
               </div>
-              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                 Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
               </span>
             </div>
@@ -1083,7 +1083,7 @@ function Landing() {
               <a href="#faq" className="hover:text-blue-500 transition">
                 FAQ
               </a>
-              <Link to="/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+              <Link to="/login" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
                 Portal Sign In
               </Link>
             </div>

@@ -29,11 +29,11 @@ function Banner({ header, theme }) {
         className={`w-full h-25 bg-linear-to-r ${theme ? "from-blue-600 to-blue-400 border-2 border-violet-300/50" : `from-blue-900 to-blue-700 border-2 border-violet-300/50`}  rounded content-center px-5 relative overflow-hidden`}
       >
         <div className="flex items-baseline justify-between pr-24">
-          <h1 className="text-white text-3xl font-bold tracking-wider">
+          <h1 className="text-white text-2xl sm:text-3xl font-semibold tracking-wide">
             {header}
           </h1>
           {settings.buildingName && (
-            <span className="hidden sm:inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 text-white/90 backdrop-blur-xs">
+            <span className="hidden sm:inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/15 text-white/90 backdrop-blur-xs">
               📍 {settings.buildingName}
             </span>
           )}

@@ -11,7 +11,7 @@ export const INITIAL_PERMISSIONS = [
   { id: "view_reports", name: "Access Usage Reports & Export", admin: true, manager: true, employee: false },
 ];
 
-const PERMISSIONS_STORAGE_KEY = "confe_permissions";
+let memoryPermissions = [...INITIAL_PERMISSIONS];
 
 export function normalizeRoleKey(role) {
   if (!role) return "employee";
@@ -22,27 +22,16 @@ export function normalizeRoleKey(role) {
 }
 
 export function getPermissions() {
-  const saved = localStorage.getItem(PERMISSIONS_STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    } catch {
-      // Fall through to initial
-    }
-  }
-  return INITIAL_PERMISSIONS;
+  return [...memoryPermissions];
 }
 
 export function savePermissions(permissions) {
-  localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(permissions));
-  window.dispatchEvent(new CustomEvent("confe_permissions_updated", { detail: permissions }));
+  memoryPermissions = Array.isArray(permissions) ? [...permissions] : [...INITIAL_PERMISSIONS];
+  window.dispatchEvent(new CustomEvent("confe_permissions_updated", { detail: memoryPermissions }));
 }
 
 export function resetPermissions() {
-  localStorage.removeItem(PERMISSIONS_STORAGE_KEY);
+  memoryPermissions = [...INITIAL_PERMISSIONS];
   window.dispatchEvent(new CustomEvent("confe_permissions_updated", { detail: INITIAL_PERMISSIONS }));
   return INITIAL_PERMISSIONS;
 }

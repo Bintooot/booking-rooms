@@ -6,7 +6,6 @@
 
 import { api } from "../api/client.js";
 
-const NOTIFICATION_STORAGE_KEY = "confe_notifications";
 export const NOTIFICATIONS_UPDATED_EVENT = "confe_notifications_updated";
 
 const INITIAL_NOTIFICATIONS = [
@@ -25,10 +24,21 @@ const INITIAL_NOTIFICATIONS = [
     message: "Rooms and collaborative facilities are available for reservations according to scheduling policies.",
     timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
     readBy: [],
-    type: "maintenance",
+    type: "system",
+    targetRoles: ["*"],
+  },
+  {
+    id: "notif-3",
+    title: "Real-Time Scheduling Ready",
+    message: "Conflict detection active across all executive boardrooms and breakout spaces.",
+    timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+    readBy: [],
+    type: "room",
     targetRoles: ["*"],
   },
 ];
+
+let memoryNotifications = [...INITIAL_NOTIFICATIONS];
 
 export function getRelativeTime(timestamp) {
   if (!timestamp) return "Recently";
@@ -49,19 +59,7 @@ export function getRelativeTime(timestamp) {
 }
 
 function getStoredNotifications() {
-  const saved = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
-  if (!saved) {
-    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(INITIAL_NOTIFICATIONS));
-    return [...INITIAL_NOTIFICATIONS];
-  }
-
-  try {
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch {
-    return [];
-  }
+  return [...memoryNotifications];
 }
 
 function getUserIdentifier(user) {
@@ -150,14 +148,14 @@ export async function fetchNotifications(user) {
         readBy: n.isRead && userKey ? [userKey] : [],
       }));
 
-      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(serverNotifs));
+      memoryNotifications = serverNotifs;
       window.dispatchEvent(
         new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: serverNotifs })
       );
       return getNotifications(user);
     }
   } catch (err) {
-    console.warn("Backend /notifications unavailable, using cached notifications:", err.message);
+    console.warn("Backend /notifications unavailable, using memory notifications:", err.message);
   }
 
   return getNotifications(user);
@@ -173,7 +171,7 @@ export function getUnreadCount(user) {
 }
 
 /**
- * Dispatches a new notification with server persistence and local fallback.
+ * Dispatches a new notification with server persistence and memory fallback.
  */
 export function addNotification({
   title,
@@ -199,7 +197,7 @@ export function addNotification({
   };
 
   const updated = [localNotif, ...current].slice(0, 150);
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
+  memoryNotifications = updated;
 
   window.dispatchEvent(
     new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: localNotif })
@@ -248,7 +246,7 @@ export function toggleNotificationRead(id, user) {
     return n;
   });
 
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
+  memoryNotifications = updated;
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
 
   // Asynchronously sync with PostgreSQL
@@ -278,7 +276,7 @@ export function markAllAsRead(user) {
     return n;
   });
 
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
+  memoryNotifications = updated;
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
 
   // Asynchronously sync with backend
@@ -315,7 +313,7 @@ export function clearAllNotifications(user) {
       return n;
     });
 
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated));
+  memoryNotifications = updated;
   window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, { detail: updated }));
   return [];
 }
