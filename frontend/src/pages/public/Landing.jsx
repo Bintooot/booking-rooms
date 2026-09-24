@@ -192,9 +192,6 @@ function Landing() {
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight flex items-center gap-1.5">
                 Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  v1.2
-                </span>
               </span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 -mt-1 font-medium hidden sm:block">
                 Workspace Reservation Suite
