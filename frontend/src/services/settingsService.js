@@ -9,8 +9,15 @@ import { api } from "../api/client.js";
 export const SETTINGS_UPDATED_EVENT = "confe_settings_updated";
 
 export const DEFAULT_SETTINGS = Object.freeze({
+  systemName: "SpaceSync",
+  systemTagline: "Workspace & Room Reservation",
   orgName: "HIJO Resources Corporation",
   buildingName: "Headquarters Building A",
+  faviconUrl: "",
+  logoUrl: "",
+  contactEmail: "support@company.com",
+  contactPhone: "+1 (555) 019-2834",
+  supportUrl: "",
   maxBookingDays: 30, // maximum days in advance allowed
   maxDurationHours: 4, // maximum duration for a single reservation
   bufferMinutes: 15, // buffer between back-to-back meetings
@@ -20,6 +27,31 @@ export const DEFAULT_SETTINGS = Object.freeze({
 });
 
 let memorySettings = { ...DEFAULT_SETTINGS };
+
+/**
+ * Dynamically update the browser tab title and favicon link based on active system settings.
+ */
+export function applyDynamicBranding(settings) {
+  if (typeof document === "undefined") return;
+
+  const name = settings.systemName || DEFAULT_SETTINGS.systemName;
+  const tagline = settings.systemTagline || DEFAULT_SETTINGS.systemTagline;
+  document.title = `${name} — ${tagline}`;
+
+  let faviconLink = document.getElementById("app-favicon") || document.querySelector("link[rel*='icon']");
+  if (!faviconLink) {
+    faviconLink = document.createElement("link");
+    faviconLink.id = "app-favicon";
+    faviconLink.rel = "icon";
+    document.head.appendChild(faviconLink);
+  }
+
+  if (settings.faviconUrl && settings.faviconUrl.trim()) {
+    faviconLink.href = settings.faviconUrl.trim();
+  } else {
+    faviconLink.href = "/favicon.svg";
+  }
+}
 
 /**
  * Synchronously retrieve current settings from memory cache.
@@ -43,19 +75,21 @@ export async function fetchSettings() {
         bufferMinutes: Number(response.data.bufferMinutes) || DEFAULT_SETTINGS.bufferMinutes,
       };
       memorySettings = normalized;
+      applyDynamicBranding(normalized);
       window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
       return normalized;
     }
   } catch (err) {
     console.warn("Backend /settings unavailable, using memory settings:", err.message);
   }
+  applyDynamicBranding(memorySettings);
   return getSettings();
 }
 
 /**
  * Persist updated settings to PostgreSQL and memory cache, broadcasting update event.
  */
-export function saveSettings(newSettings) {
+export async function saveSettings(newSettings) {
   const normalized = {
     ...DEFAULT_SETTINGS,
     ...newSettings,
@@ -65,12 +99,20 @@ export function saveSettings(newSettings) {
   };
 
   memorySettings = normalized;
+  applyDynamicBranding(normalized);
   window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: normalized }));
 
-  // Asynchronously persist to PostgreSQL
-  api.put("/settings", normalized).catch((err) => {
+  try {
+    const res = await api.put("/settings", normalized);
+    if (res.data) {
+      const saved = { ...normalized, ...res.data };
+      memorySettings = saved;
+      applyDynamicBranding(saved);
+      return saved;
+    }
+  } catch (err) {
     console.warn("Could not persist settings to backend:", err.message);
-  });
+  }
 
   return normalized;
 }

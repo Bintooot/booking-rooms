@@ -17,11 +17,13 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useSettings } from "../context/SettingsContext.jsx";
 import { canAccessRoute } from "../utils/permissions.js";
 import { getUnreadCount, NOTIFICATIONS_UPDATED_EVENT } from "../services/notificationService.js";
 
 function Sidebar({ theme }) {
   const { user, logout } = useAuth();
+  const { settings } = useSettings();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [permVersion, setPermVersion] = useState(0);
   const [unreadCount, setUnreadCount] = useState(() => getUnreadCount(user));
@@ -181,27 +183,51 @@ function Sidebar({ theme }) {
             : "flex justify-between items-center px-1"
         }`}
       >
-        <Link to="/dashboard" className={`${isCollapsed ? "hidden" : "flex items-center gap-2"}`}>
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-medium">
-            <DoorOpen size={18} />
-          </div>
+        <Link to="/dashboard" className={`${isCollapsed ? "hidden" : "flex items-center gap-2 overflow-hidden"}`}>
+          {settings.logoUrl ? (
+            <img
+              src={settings.logoUrl}
+              alt={settings.systemName || "Logo"}
+              className="w-8 h-8 rounded-lg object-contain bg-white/10 p-0.5 border border-slate-200/20 shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-medium shrink-0">
+              <DoorOpen size={18} />
+            </div>
+          )}
           <h1
-            className={`text-xl font-bold tracking-tight ${
+            className={`text-lg font-bold tracking-tight truncate max-w-[150px] ${
               theme ? "text-white" : "text-blue-950"
             }`}
+            title={settings.systemName || "SpaceSync"}
           >
-            Space
-            <span className={theme ? "text-blue-400" : "text-blue-600"}>
-              Sync
-            </span>
+            {settings.systemName || "SpaceSync"}
           </h1>
         </Link>
+
+        {isCollapsed && (
+          <Link to="/dashboard" title={settings.systemName || "SpaceSync"} className="flex justify-center">
+            {settings.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt={settings.systemName || "Logo"}
+                className="w-8 h-8 rounded-lg object-contain bg-white/10 p-0.5 border border-slate-200/20 shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-medium shrink-0">
+                <DoorOpen size={18} />
+              </div>
+            )}
+          </Link>
+        )}
 
         <button
           type="button"
           onClick={toggleShrink}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={`p-1.5 rounded-lg transition ${
+            isCollapsed ? "hidden" : ""
+          } ${
             theme
               ? "text-gray-400 hover:text-white hover:bg-slate-700"
               : "text-blue-900 hover:bg-blue-100"

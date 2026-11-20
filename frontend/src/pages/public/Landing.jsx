@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import { getRooms } from "../../api/rooms.js";
 import {
   DoorOpen,
@@ -107,6 +108,7 @@ const FAQS = [
 function Landing() {
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated, user } = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -186,15 +188,23 @@ function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <DoorOpen size={22} className="stroke-[2.2]" />
-            </div>
+            {settings.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt={settings.systemName || "Logo"}
+                className="w-10 h-10 rounded-xl object-contain bg-linear-to-br from-blue-600 to-indigo-700 p-1 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                <DoorOpen size={22} className="stroke-[2.2]" />
+              </div>
+            )}
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight flex items-center gap-1.5">
-                Space<span className="text-blue-600 dark:text-blue-400">Sync</span>
+                {settings.systemName || "SpaceSync"}
               </span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 -mt-1 font-medium hidden sm:block">
-                Workspace Reservation Suite
+                {settings.systemTagline || "Workspace Reservation Suite"}
               </span>
             </div>
           </Link>

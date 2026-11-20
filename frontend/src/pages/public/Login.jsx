@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import {
   DoorOpen,
   LockKeyhole,
@@ -19,6 +20,7 @@ import {
 function Login() {
   const { theme } = useTheme();
   const { login, logout, user, isAuthenticated } = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState(() => {
@@ -80,20 +82,30 @@ function Login() {
           {/* Brand header */}
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center gap-3 group transition-transform hover:scale-[1.02]">
-              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/20 transition">
-                <DoorOpen size={22} className="text-blue-300" />
-              </div>
+              {settings.logoUrl ? (
+                <img
+                  src={settings.logoUrl}
+                  alt={settings.systemName || "Logo"}
+                  className="w-11 h-11 rounded-xl object-contain bg-white/10 backdrop-blur-md p-1 border border-white/20 shadow-inner group-hover:bg-white/20 transition"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/20 transition">
+                  <DoorOpen size={22} className="text-blue-300" />
+                </div>
+              )}
               <h1 className="text-2xl font-bold tracking-tight text-white">
-                Space<span className="text-blue-300">Sync</span>
+                {settings.systemName || "SpaceSync"}
               </h1>
             </Link>
 
             <div className="mt-8 space-y-3">
               <h2 className="text-2xl font-semibold leading-tight">
-                Modern Workspace & Room Reservation
+                {settings.systemTagline || "Modern Workspace & Room Reservation"}
               </h2>
               <p className="text-blue-100/75 text-sm leading-relaxed">
-                Streamline meeting schedules, optimize workspace occupancy, and prevent room double-bookings in real-time.
+                {settings.orgName
+                  ? `Official workspace reservation portal for ${settings.orgName}. Streamline meeting schedules and optimize space occupancy in real-time.`
+                  : "Streamline meeting schedules, optimize workspace occupancy, and prevent room double-bookings in real-time."}
               </p>
             </div>
           </div>

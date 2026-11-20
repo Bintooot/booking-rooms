@@ -88,8 +88,15 @@ CREATE TABLE IF NOT EXISTS notification_reads (
 -- System Settings & Booking Policy Configuration (Single-row table)
 CREATE TABLE IF NOT EXISTS system_settings (
   id INT PRIMARY KEY DEFAULT 1,
+  system_name VARCHAR(100) DEFAULT 'SpaceSync',
+  system_tagline VARCHAR(255) DEFAULT 'Workspace & Room Reservation',
   org_name VARCHAR(150) DEFAULT 'HIJO Resources Corporation',
   building_name VARCHAR(150) DEFAULT 'Headquarters Building A',
+  favicon_url TEXT DEFAULT '',
+  logo_url TEXT DEFAULT '',
+  contact_email VARCHAR(255) DEFAULT 'support@company.com',
+  contact_phone VARCHAR(50) DEFAULT '+1 (555) 019-2834',
+  support_url VARCHAR(255) DEFAULT '',
   max_booking_days INT DEFAULT 30,
   max_duration_hours INT DEFAULT 4,
   buffer_minutes INT DEFAULT 15,
@@ -101,8 +108,17 @@ CREATE TABLE IF NOT EXISTS system_settings (
 );
 
 -- Seed Default Settings
-INSERT INTO system_settings (id, org_name, building_name, max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, email_reminders, conflict_strict)
-VALUES (1, 'HIJO Resources Corporation', 'Headquarters Building A', 30, 4, 15, 15, true, true)
+INSERT INTO system_settings (
+  id, system_name, system_tagline, org_name, building_name, 
+  favicon_url, logo_url, contact_email, contact_phone, support_url,
+  max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, 
+  email_reminders, conflict_strict
+)
+VALUES (
+  1, 'SpaceSync', 'Workspace & Room Reservation', 'HIJO Resources Corporation', 'Headquarters Building A',
+  '', '', 'support@company.com', '+1 (555) 019-2834', '',
+  30, 4, 15, 15, true, true
+)
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed Default Administrator Account (password: password123)

@@ -7,6 +7,7 @@ import App from "./App.jsx";
 
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { SettingsProvider } from "./context/SettingsContext.jsx";
 import { ToastProvider } from "./components/Toast.jsx";
 // Purge any legacy application data stored in browser localStorage
 try {
@@ -30,11 +31,13 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </AuthProvider>
+        <SettingsProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </AuthProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
