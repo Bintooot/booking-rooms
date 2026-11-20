@@ -68,12 +68,28 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error" });
 });
 
+// Cold-start database verification for serverless platforms (Vercel)
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+  if (process.env.VERCEL && !dbInitialized) {
+    dbInitialized = true;
+    try {
+      await initDb();
+    } catch (e) {
+      console.error("[DB Init Warning in Serverless]:", e.message);
+    }
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
-  // Run idempotent database migrations
-  await initDb();
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`Server is running on port ${PORT}`);
+    // Run idempotent database migrations
+    await initDb();
+  });
+}
 
 export default app;
