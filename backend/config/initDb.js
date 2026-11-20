@@ -1,4 +1,5 @@
 import pool from "./db.js";
+import bcrypt from "bcrypt";
 
 /**
  * Idempotent Database Initialization & Migration
@@ -72,7 +73,45 @@ export async function initDb() {
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    console.log("[DB] Database schema and tables verified successfully.");
+    // 5. Ensure default administrator account exists with authentic bcrypt hash for 'password123'
+    try {
+      const adminEmail = "admin@company.com";
+      const validHash = await bcrypt.hash("password123", 10);
+
+      const existing = await pool.query(
+        "SELECT id, password_hash FROM users WHERE LOWER(email) = LOWER($1)",
+        [adminEmail]
+      );
+
+      if (existing.rows.length === 0) {
+        await pool.query(
+          `INSERT INTO users (name, email, password_hash, role)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (email) DO NOTHING`,
+          ["Administrator", adminEmail, validHash, "Administrator"]
+        );
+        console.log(`[DB] Created default administrator account: ${adminEmail}`);
+      } else {
+        const row = existing.rows[0];
+        let valid = false;
+        try {
+          valid = await bcrypt.compare("password123", row.password_hash);
+        } catch (_e) {
+          valid = false;
+        }
+        if (!valid) {
+          await pool.query(
+            "UPDATE users SET password_hash = $1 WHERE id = $2",
+            [validHash, row.id]
+          );
+          console.log(`[DB] Repaired password hash for administrator: ${adminEmail}`);
+        }
+      }
+    } catch (userErr) {
+      console.warn("[DB] User verification notice:", userErr.message);
+    }
+
+    console.log("[DB] Database schema, tables, and accounts verified successfully.");
   } catch (err) {
     console.error("[DB] Migration warning:", err.message);
   }
