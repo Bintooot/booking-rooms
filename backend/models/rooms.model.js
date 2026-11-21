@@ -5,6 +5,8 @@ function formatRoom(r) {
   const status = r.status || (r.is_active === false ? "Maintenance" : "Available");
   return {
     ...r,
+    hourly_rate: Number(r.hourly_rate) || 0,
+    price_per_night: Number(r.price_per_night) || 0,
     status,
     is_active: r.is_active !== false,
     size: Number(r.capacity) > 15 ? "large" : Number(r.capacity) > 6 ? "medium" : "small",
@@ -33,11 +35,13 @@ export async function createRoom({
   description,
   amenities,
   is_active = true,
-  type = "Meeting Room",
+  type = "Room",
+  hourly_rate = 0,
+  price_per_night = 0,
 }) {
   const result = await pool.query(
-    `INSERT INTO rooms (name, capacity, location, description, amenities, is_active, type)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    `INSERT INTO rooms (name, capacity, location, description, amenities, is_active, type, hourly_rate, price_per_night)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
     [
       name,
       capacity,
@@ -45,14 +49,26 @@ export async function createRoom({
       description || null,
       amenities || [],
       is_active !== undefined ? is_active : true,
-      type || "Meeting Room",
+      type || "Room",
+      Number(hourly_rate) || 0,
+      Number(price_per_night) || 0,
     ],
   );
   return formatRoom(result.rows[0]);
 }
 
 export async function updateRoom(id, fields) {
-  const allowed = ["name", "capacity", "location", "description", "amenities", "is_active", "type"];
+  const allowed = [
+    "name",
+    "capacity",
+    "location",
+    "description",
+    "amenities",
+    "is_active",
+    "type",
+    "hourly_rate",
+    "price_per_night",
+  ];
   const sets = [];
   const values = [];
   let paramIdx = 1;

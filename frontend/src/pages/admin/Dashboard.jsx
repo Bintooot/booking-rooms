@@ -135,7 +135,7 @@ function Dashboard() {
   });
 
   return (
-    <main className="w-full min-h-screen pb-10">
+    <div className="w-full pb-10">
       <Banner header="Dashboard" theme={theme} />
 
       {/* Quick Action shortcuts */}
@@ -153,8 +153,8 @@ function Dashboard() {
             to="/room-creation"
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
               theme
-                ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
-                : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+                ? "bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs"
             }`}
           >
             <PlusCircle size={15} />
@@ -166,8 +166,8 @@ function Dashboard() {
           to="/booking-management"
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-medium transition ${
             theme
-              ? "bg-slate-800 border-slate-700 text-gray-200 hover:bg-slate-700"
-              : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
+              ? "bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800"
+              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs"
           }`}
         >
           <CalendarDays size={15} />
@@ -229,10 +229,10 @@ function Dashboard() {
         {cardSummary.map((item) => (
           <div
             key={item.id}
-            className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+            className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
               theme
-                ? "bg-slate-800 border-slate-700 hover:border-slate-600"
-                : "bg-white border-gray-200 hover:border-blue-200"
+                ? "bg-slate-900 border-slate-800 hover:border-slate-700"
+                : "bg-white border-slate-200 shadow-xs hover:border-blue-200"
             }`}
           >
             <div className="flex items-start justify-between">
@@ -287,7 +287,7 @@ function Dashboard() {
         {/* Room utilization */}
         <section
           className={`lg:col-span-2 rounded-2xl border p-6 ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div className="flex items-center justify-between mb-6">
@@ -339,7 +339,7 @@ function Dashboard() {
 
                 <div
                   className={`w-full h-2 rounded-full overflow-hidden ${
-                    theme ? "bg-slate-700" : "bg-gray-100"
+                    theme ? "bg-slate-800" : "bg-slate-100"
                   }`}
                 >
                   <div
@@ -361,7 +361,7 @@ function Dashboard() {
         {/* Status Breakdown & Quick Insights */}
         <section
           className={`rounded-2xl border p-6 flex flex-col justify-between ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+            theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
           }`}
         >
           <div>
@@ -439,8 +439,8 @@ function Dashboard() {
           <div
             className={`mt-4 p-3 rounded-xl border text-xs flex items-center gap-2.5 ${
               theme
-                ? "bg-slate-900/60 border-slate-700 text-gray-300"
-                : "bg-blue-50/70 border-blue-100 text-blue-900"
+                ? "bg-slate-950/60 border-slate-800 text-slate-300"
+                : "bg-blue-50/80 border-blue-100 text-blue-900"
             }`}
           >
             <CheckCircle2 size={16} className="text-blue-500 shrink-0" />
@@ -452,7 +452,7 @@ function Dashboard() {
       {/* Upcoming bookings */}
       <section
         className={`rounded-2xl border p-6 mt-6 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex items-center justify-between mb-4">
@@ -496,8 +496,8 @@ function Dashboard() {
                     timing.isLiveOvertime
                       ? "border-rose-500/40 bg-rose-500/5 dark:bg-rose-950/20"
                       : theme
-                        ? "border-slate-700 bg-slate-900/40 hover:border-slate-600"
-                        : "border-gray-200 bg-gray-50/60 hover:border-blue-200"
+                        ? "border-slate-800 bg-slate-950/50 hover:border-slate-700"
+                        : "border-slate-200 bg-slate-50/70 hover:border-blue-200"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -546,7 +546,7 @@ function Dashboard() {
                     {booking.room_name || `Room #${booking.room_id}`}
                   </p>
 
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-slate-700/50 text-[11px] text-gray-400">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800 text-[11px] text-gray-400">
                     <span>{booking.booker_name}</span>
                     {timing.isLiveOvertime && (user?.role === "Administrator" || user?.role === "Manager") ? (
                       <button
@@ -566,7 +566,7 @@ function Dashboard() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 

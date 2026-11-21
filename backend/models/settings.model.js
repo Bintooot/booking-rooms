@@ -2,16 +2,19 @@ import pool from "../config/db.js";
 
 const DEFAULT_SETTINGS = {
   systemName: "SpaceSync",
-  systemTagline: "Workspace & Room Reservation",
+  systemTagline: "Universal Room Reservation System",
   orgName: "HIJO Resources Corporation",
-  buildingName: "Headquarters Building A",
+  buildingName: "Main Facility",
+  venueType: "general", // 'general', 'ktv', 'hotel', 'corporate', 'studio'
+  currencySymbol: "$",
+  pricingEnabled: false,
   faviconUrl: "",
   logoUrl: "",
   contactEmail: "support@company.com",
   contactPhone: "+1 (555) 019-2834",
   supportUrl: "",
   maxBookingDays: 30,
-  maxDurationHours: 4,
+  maxDurationHours: 8,
   bufferMinutes: 15,
   autoReleaseMinutes: 15,
   emailReminders: true,
@@ -25,6 +28,9 @@ function formatSettings(row) {
     systemTagline: row.system_tagline || DEFAULT_SETTINGS.systemTagline,
     orgName: row.org_name || DEFAULT_SETTINGS.orgName,
     buildingName: row.building_name || DEFAULT_SETTINGS.buildingName,
+    venueType: row.venue_type || DEFAULT_SETTINGS.venueType,
+    currencySymbol: row.currency_symbol || DEFAULT_SETTINGS.currencySymbol,
+    pricingEnabled: Boolean(row.pricing_enabled),
     faviconUrl: row.favicon_url || "",
     logoUrl: row.logo_url || "",
     contactEmail: row.contact_email || DEFAULT_SETTINGS.contactEmail,
@@ -47,14 +53,16 @@ export async function getSystemSettings() {
     const inserted = await pool.query(`
       INSERT INTO system_settings (
         id, system_name, system_tagline, org_name, building_name, 
+        venue_type, currency_symbol, pricing_enabled,
         favicon_url, logo_url, contact_email, contact_phone, support_url,
         max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, 
         email_reminders, conflict_strict
       )
       VALUES (
-        1, 'SpaceSync', 'Workspace & Room Reservation', 'HIJO Resources Corporation', 'Headquarters Building A',
+        1, 'SpaceSync', 'Universal Room Reservation System', 'HIJO Resources Corporation', 'Main Facility',
+        'general', '$', false,
         '', '', 'support@company.com', '+1 (555) 019-2834', '',
-        30, 4, 15, 15, true, true
+        30, 8, 15, 15, true, true
       )
       ON CONFLICT (id) DO UPDATE SET updated_at = NOW()
       RETURNING *
@@ -71,16 +79,20 @@ export async function updateSystemSettings(newSettings) {
   const result = await pool.query(
     `INSERT INTO system_settings (
        id, system_name, system_tagline, org_name, building_name, 
+       venue_type, currency_symbol, pricing_enabled,
        favicon_url, logo_url, contact_email, contact_phone, support_url,
        max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, 
        email_reminders, conflict_strict, updated_at
      )
-     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
      ON CONFLICT (id) DO UPDATE SET
        system_name = EXCLUDED.system_name,
        system_tagline = EXCLUDED.system_tagline,
        org_name = EXCLUDED.org_name,
        building_name = EXCLUDED.building_name,
+       venue_type = EXCLUDED.venue_type,
+       currency_symbol = EXCLUDED.currency_symbol,
+       pricing_enabled = EXCLUDED.pricing_enabled,
        favicon_url = EXCLUDED.favicon_url,
        logo_url = EXCLUDED.logo_url,
        contact_email = EXCLUDED.contact_email,
@@ -96,16 +108,19 @@ export async function updateSystemSettings(newSettings) {
      RETURNING *`,
     [
       merged.systemName || "SpaceSync",
-      merged.systemTagline || "Workspace & Room Reservation",
+      merged.systemTagline || "Universal Room Reservation System",
       merged.orgName || "HIJO Resources Corporation",
-      merged.buildingName || "Headquarters Building A",
+      merged.buildingName || "Main Facility",
+      merged.venueType || "general",
+      merged.currencySymbol || "$",
+      Boolean(merged.pricingEnabled),
       merged.faviconUrl || "",
       merged.logoUrl || "",
       merged.contactEmail || "",
       merged.contactPhone || "",
       merged.supportUrl || "",
       Number(merged.maxBookingDays) || 30,
-      Number(merged.maxDurationHours) || 4,
+      Number(merged.maxDurationHours) || 8,
       Number(merged.bufferMinutes) || 15,
       Number(merged.autoReleaseMinutes) || 15,
       merged.emailReminders !== false,

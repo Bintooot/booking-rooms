@@ -43,6 +43,9 @@ export const createBookingController = async (req, res) => {
       status,
       notes,
       attendees,
+      contact_phone,
+      total_price,
+      special_requests,
     } = req.body;
 
     if (!room_id || !start_time || !end_time) {
@@ -61,18 +64,21 @@ export const createBookingController = async (req, res) => {
     }
 
     const userId = req.user?.id || req.body.user_id || null;
-    const authorName = booker_name || user_name || req.user?.name || "Team Member";
+    const authorName = booker_name || user_name || req.user?.name || "Guest";
 
     const newBooking = await createBooking({
       room_id,
       user_id: userId,
       booker_name: authorName,
-      title: title || "Meeting",
+      title: title || "Reservation",
       start_time: formattedStart,
       end_time: formattedEnd,
       status: status || "confirmed",
       notes: notes || "",
       attendees: attendees || 2,
+      contact_phone: contact_phone || "",
+      total_price: Number(total_price) || 0,
+      special_requests: special_requests || "",
     });
 
     res.status(201).json({ message: "Booking created successfully", booking: newBooking });

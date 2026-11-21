@@ -33,7 +33,17 @@ export const getRoomByIdController = async (req, res) => {
 
 export const createnewRoomController = async (req, res) => {
   try {
-    const { name, capacity, location, description, amenities, is_active, type } = req.body;
+    const {
+      name,
+      capacity,
+      location,
+      description,
+      amenities,
+      is_active,
+      type,
+      hourly_rate,
+      price_per_night,
+    } = req.body;
 
     if (!name || !capacity) {
       return res.status(400).json({ error: "name and capacity are required" });
@@ -47,6 +57,8 @@ export const createnewRoomController = async (req, res) => {
       amenities,
       is_active,
       type,
+      hourly_rate: Number(hourly_rate) || 0,
+      price_per_night: Number(price_per_night) || 0,
     });
 
     res.status(201).json(newRoom);

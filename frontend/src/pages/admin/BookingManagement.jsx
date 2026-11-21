@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import { hasPermission } from "../../utils/permissions.js";
 import {
   getBookings,
@@ -13,7 +14,7 @@ import {
 } from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
-import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
+import { validateBookingAgainstPolicy, timeStringToMinutes } from "../../services/settingsService.js";
 import { logAuditEvent } from "../../services/auditService.js";
 import { addNotification } from "../../services/notificationService.js";
 import { getBookingTimingState } from "../../utils/overtime.js";
@@ -31,12 +32,17 @@ import {
   AlertTriangle,
   LogIn,
   LogOut,
+  Phone,
+  DollarSign,
+  Receipt,
 } from "lucide-react";
 
 function BookingManagement() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { settings } = useSettings();
+  const currencySymbol = settings?.currencySymbol || "$";
 
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -59,11 +65,14 @@ function BookingManagement() {
     room_id: "",
     title: "",
     booker_name: "",
+    contact_phone: "",
     date: new Date().toISOString().split("T")[0],
     start_time: "09:00",
     end_time: "10:00",
     attendees: 4,
     notes: "",
+    special_requests: "",
+    total_price: "",
   });
 
   const loadData = useCallback(async () => {
@@ -243,8 +252,20 @@ function BookingManagement() {
     }
 
     try {
+      const hourlyRate = Number(selectedRoom?.hourly_rate) || 0;
+      const startMin = timeStringToMinutes(formData.start_time);
+      const endMin = timeStringToMinutes(formData.end_time);
+      const durationHours = endMin > startMin ? (endMin - startMin) / 60 : 0;
+      const autoPrice = Number((durationHours * hourlyRate).toFixed(2));
+      const finalPrice = formData.total_price !== "" && !isNaN(Number(formData.total_price))
+        ? Number(formData.total_price)
+        : autoPrice;
+
       const newBooking = await createBooking({
         ...formData,
+        total_price: finalPrice,
+        contact_phone: formData.contact_phone || "",
+        special_requests: formData.special_requests || "",
         user_id: user?.id,
         room_name: roomName,
         status: "confirmed",
@@ -273,11 +294,14 @@ function BookingManagement() {
         room_id: rooms[0]?.id || "",
         title: "",
         booker_name: "",
+        contact_phone: "",
         date: new Date().toISOString().split("T")[0],
         start_time: "09:00",
         end_time: "10:00",
         attendees: 4,
         notes: "",
+        special_requests: "",
+        total_price: "",
       });
     } catch {
       showToast("Failed to create reservation", "error");
@@ -296,7 +320,7 @@ function BookingManagement() {
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Booking Management" theme={theme} />
 
       {/* Page Header */}
@@ -339,7 +363,7 @@ function BookingManagement() {
           <div
             key={kpi.label}
             className={`rounded-2xl border p-4 ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+              theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -372,7 +396,7 @@ function BookingManagement() {
       {/* Search & Filter Bar */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -435,7 +459,7 @@ function BookingManagement() {
       {/* Bookings Table / List */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {loading ? (
@@ -447,19 +471,20 @@ function BookingManagement() {
                 <tr
                   className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
-                      ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                      ? "border-slate-800 bg-slate-950/60 text-slate-400"
                       : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
-                  <th className="py-3.5 px-5">Meeting Details</th>
-                  <th className="py-3.5 px-4">Room</th>
+                  <th className="py-3.5 px-5">Reservation Details</th>
+                  <th className="py-3.5 px-4">Room / Space</th>
                   <th className="py-3.5 px-4">Date & Time</th>
-                  <th className="py-3.5 px-4">Organizer</th>
+                  <th className="py-3.5 px-4">Customer / Guest</th>
+                  <th className="py-3.5 px-4">Rate & Bill</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {filteredBookings.map((booking) => (
                   <tr
                     key={booking.id}
@@ -519,13 +544,29 @@ function BookingManagement() {
                       >
                         {booking.booker_name}
                       </span>
+                      {booking.contact_phone && (
+                        <span className="text-[10px] text-slate-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                          <Phone size={10} /> {booking.contact_phone}
+                        </span>
+                      )}
                       <span
                         className={`block text-[11px] ${
                           theme ? "text-gray-400" : "text-gray-500"
                         }`}
                       >
-                        {booking.attendees} attendees
+                        {booking.attendees} guests/attendees
                       </span>
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <span className="font-semibold text-xs text-emerald-600 dark:text-emerald-400">
+                        {currencySymbol}{Number(booking.total_price || 0).toLocaleString()}
+                      </span>
+                      {booking.special_requests && (
+                        <p className="text-[10px] text-slate-400 truncate max-w-[130px]" title={booking.special_requests}>
+                          Req: {booking.special_requests}
+                        </p>
+                      )}
                     </td>
 
                     <td className="py-4 px-4">
@@ -710,13 +751,13 @@ function BookingManagement() {
           <section
             className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
               theme
-                ? "bg-slate-800 border border-slate-700"
-                : "bg-white border border-gray-200"
+                ? "bg-slate-900 border border-slate-800"
+                : "bg-white border border-slate-200"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-gray-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <div>
@@ -749,184 +790,247 @@ function BookingManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="p-6 space-y-4">
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Meeting Room
-                </label>
-                <select
-                  value={formData.room_id}
-                  onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
-                  required
-                  className={inputClass}
-                >
-                  {rooms.map((room) => (
-                    <option key={room.id} value={room.id}>
-                      {room.name} ({room.capacity} seats · {room.location})
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {(() => {
+              const selectedModalRoom = rooms.find((r) => String(r.id) === String(formData.room_id));
+              const modalHourlyRate = Number(selectedModalRoom?.hourly_rate) || 0;
+              const modalStartMin = timeStringToMinutes(formData.start_time);
+              const modalEndMin = timeStringToMinutes(formData.end_time);
+              const modalDurationHours = modalEndMin > modalStartMin ? (modalEndMin - modalStartMin) / 60 : 0;
+              const modalAutoPrice = Number((modalDurationHours * modalHourlyRate).toFixed(2));
 
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Meeting Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sprint Planning Session"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                  className={inputClass}
-                />
-              </div>
+              return (
+                <form onSubmit={handleCreate} className="p-6 space-y-4">
+                  <div>
+                    <label
+                      className={`block text-xs font-medium mb-1.5 ${
+                        theme ? "text-gray-300" : "text-slate-700"
+                      }`}
+                    >
+                      Room / Space
+                    </label>
+                    <select
+                      value={formData.room_id}
+                      onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+                      required
+                      className={inputClass}
+                    >
+                      {rooms.map((room) => (
+                        <option key={room.id} value={room.id}>
+                          {room.name} {room.hourly_rate > 0 ? `(${currencySymbol}${room.hourly_rate}/hr)` : ""} ({room.capacity} seats · {room.location})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Booker Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={formData.booker_name}
-                  onChange={(e) => setFormData({ ...formData, booker_name: e.target.value })}
-                  required
-                  className={inputClass}
-                />
-              </div>
+                  <div>
+                    <label
+                      className={`block text-xs font-medium mb-1.5 ${
+                        theme ? "text-gray-300" : "text-slate-700"
+                      }`}
+                    >
+                      Reservation Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. VIP Suite Party, Overnight Stay, or Client Session"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    className={`block text-xs font-medium mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                    className={inputClass}
-                  />
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        Customer / Guest Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Full Name"
+                        value={formData.booker_name}
+                        onChange={(e) => setFormData({ ...formData, booker_name: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
 
-                <div>
-                  <label
-                    className={`block text-xs font-medium mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
-                    Attendees
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.attendees}
-                    onChange={(e) => setFormData({ ...formData, attendees: e.target.value })}
-                    required
-                    className={inputClass}
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        Contact Phone
+                      </label>
+                      <div className="relative">
+                        <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="tel"
+                          placeholder="e.g. +1 555-0192"
+                          value={formData.contact_phone}
+                          onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
+                          className={`${inputClass} pl-9`}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    className={`block text-xs font-medium mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                    required
-                    className={inputClass}
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
 
-                <div>
-                  <label
-                    className={`block text-xs font-medium mb-1.5 ${
-                      theme ? "text-gray-300" : "text-slate-700"
-                    }`}
-                  >
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                    required
-                    className={inputClass}
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        Guests / Attendees
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={formData.attendees}
+                        onChange={(e) => setFormData({ ...formData, attendees: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Notes & Special Requirements
-                </label>
-                <textarea
-                  rows="2"
-                  placeholder="Need whiteboard markers, catering, etc."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        value={formData.start_time}
+                        onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
 
-              <div
-                className={`flex justify-end gap-3 pt-4 border-t ${
-                  theme ? "border-slate-700" : "border-gray-100"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-medium ${
-                    theme
-                      ? "text-gray-300 hover:bg-slate-700"
-                      : "text-slate-600 hover:bg-gray-100"
-                  }`}
-                >
-                  Cancel
-                </button>
+                    <div>
+                      <label
+                        className={`block text-xs font-medium mb-1.5 ${
+                          theme ? "text-gray-300" : "text-slate-700"
+                        }`}
+                      >
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        value={formData.end_time}
+                        onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
 
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition"
-                >
-                  Create Reservation
-                </button>
-              </div>
-            </form>
+                  {/* Commercial Billing Preview */}
+                  {(modalHourlyRate > 0 || settings.pricingEnabled) && (
+                    <div className="p-3.5 rounded-2xl border bg-emerald-500/5 border-emerald-500/20 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                          <DollarSign size={14} /> Total Bill Calculation
+                        </span>
+                        <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                          {currencySymbol}
+                          {formData.total_price !== "" ? formData.total_price : modalAutoPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                        {modalDurationHours.toFixed(1)} hrs duration @ {currencySymbol}{modalHourlyRate}/hr rate.
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label
+                      className={`block text-xs font-medium mb-1.5 ${
+                        theme ? "text-gray-300" : "text-slate-700"
+                      }`}
+                    >
+                      Special Requests / Add-ons / Packages
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Wireless mics + drinks package, extra pillows, food platters"
+                      value={formData.special_requests}
+                      onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className={`block text-xs font-medium mb-1.5 ${
+                        theme ? "text-gray-300" : "text-slate-700"
+                      }`}
+                    >
+                      Internal Notes
+                    </label>
+                    <textarea
+                      rows="2"
+                      placeholder="Optional notes or staff reminders..."
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      className={`${inputClass} resize-none`}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-3 border-t dark:border-slate-800 border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
+                        theme
+                          ? "text-gray-300 hover:bg-slate-800"
+                          : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+                    >
+                      Confirm Reservation
+                    </button>
+                  </div>
+                </form>
+              );
+            })()}
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

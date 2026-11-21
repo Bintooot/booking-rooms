@@ -8,18 +8,79 @@ import { api } from "../api/client.js";
 
 export const SETTINGS_UPDATED_EVENT = "confe_settings_updated";
 
+export const VENUE_PRESETS = Object.freeze({
+  general: {
+    id: "general",
+    label: "Universal / Multi-Purpose",
+    description: "Versatile room booking adaptable to general meeting rooms, event halls, and spaces.",
+    systemName: "SpaceSync",
+    systemTagline: "Universal Space & Room Reservation",
+    pricingEnabled: false,
+    currencySymbol: "$",
+    defaultRoomTypes: ["Standard Room", "Executive Suite", "Event Hall", "Private Pod"],
+    defaultAmenities: ["Air Conditioning", "WiFi", "Sound System", "Display Monitor", "Restroom Access", "Whiteboard"],
+  },
+  ktv: {
+    id: "ktv",
+    label: "KTV & Karaoke Lounge",
+    description: "Tailored for karaoke party rooms, VIP singing boxes, family lounges, and entertainment venues.",
+    systemName: "KaraokeSync",
+    systemTagline: "KTV Lounge & Room Reservation",
+    pricingEnabled: true,
+    currencySymbol: "₱",
+    defaultRoomTypes: ["Small KTV Box (1-4 pax)", "Medium Singing Suite (5-8 pax)", "Large Party Room (9-15 pax)", "VIP Karaoke Lounge (16-30 pax)"],
+    defaultAmenities: ["Wireless Microphones", "High-End Audio", "LED Disco Lights", "Touchscreen Song Selector", "Tambourines", "Minibar", "Private Restroom"],
+  },
+  hotel: {
+    id: "hotel",
+    label: "Hotel & Guest Suites",
+    description: "Specialized for boutique hotels, guest lodges, b&bs, and transit day-use rooms.",
+    systemName: "StaySync",
+    systemTagline: "Hotel & Guest Room Reservation",
+    pricingEnabled: true,
+    currencySymbol: "$",
+    defaultRoomTypes: ["Standard Single", "Deluxe Double", "Executive King Suite", "Family Suite", "Day-Use Transit Room"],
+    defaultAmenities: ["Ensuite Bathroom", "King Size Bed", "High-Speed WiFi", "Smart 4K TV", "Air Conditioning", "Mini Fridge", "Complimentary Breakfast", "Daily Housekeeping"],
+  },
+  corporate: {
+    id: "corporate",
+    label: "Corporate & Conference Center",
+    description: "Optimized for corporate offices, executive boardrooms, video hubs, and team spaces.",
+    systemName: "SpaceSync",
+    systemTagline: "Workspace & Conference Reservation",
+    pricingEnabled: false,
+    currencySymbol: "$",
+    defaultRoomTypes: ["Focus Booth", "Conference Room", "Executive Boardroom", "Training Hall", "Video Conference Suite"],
+    defaultAmenities: ["4K Video Conference Screen", "Whiteboard", "High-Speed WiFi", "Projector & Screen", "Ergonomic Chairs", "Coffee Station"],
+  },
+  studio: {
+    id: "studio",
+    label: "Creative & Music Studio",
+    description: "Customized for audio recording studios, band rehearsals, photo shoots, and podcast rooms.",
+    systemName: "StudioSync",
+    systemTagline: "Creative Studio & Rehearsal Booking",
+    pricingEnabled: true,
+    currencySymbol: "$",
+    defaultRoomTypes: ["Podcast Room", "Sound Recording Booth", "Band Rehearsal Studio", "Photography & Video Studio"],
+    defaultAmenities: ["Acoustic Treatment", "Studio Condenser Mics", "Audio Interface & Monitors", "Drum Kit & Amps", "Softbox Studio Lighting", "Green Screen"],
+  },
+});
+
 export const DEFAULT_SETTINGS = Object.freeze({
   systemName: "SpaceSync",
-  systemTagline: "Workspace & Room Reservation",
+  systemTagline: "Universal Room Reservation System",
   orgName: "HIJO Resources Corporation",
-  buildingName: "Headquarters Building A",
+  buildingName: "Main Facility",
+  venueType: "general", // 'general', 'ktv', 'hotel', 'corporate', 'studio'
+  currencySymbol: "$",
+  pricingEnabled: false,
   faviconUrl: "",
   logoUrl: "",
   contactEmail: "support@company.com",
   contactPhone: "+1 (555) 019-2834",
   supportUrl: "",
   maxBookingDays: 30, // maximum days in advance allowed
-  maxDurationHours: 4, // maximum duration for a single reservation
+  maxDurationHours: 8, // maximum duration for a single reservation
   bufferMinutes: 15, // buffer between back-to-back meetings
   autoReleaseMinutes: 15, // no-show auto release
   emailReminders: true,

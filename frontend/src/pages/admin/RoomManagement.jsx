@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import { hasPermission } from "../../utils/permissions.js";
 import { getRooms, updateRoom, deleteRoom as apiDeleteRoom } from "../../api/rooms.js";
 import { getBookings } from "../../api/bookings.js";
@@ -28,6 +29,7 @@ import {
   LayoutGrid,
   List,
   AlertTriangle,
+  DollarSign,
 } from "lucide-react";
 
 const AVAILABLE_AMENITIES = [
@@ -45,6 +47,8 @@ function RoomManagement() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { settings } = useSettings();
+  const currencySymbol = settings?.currencySymbol || "$";
 
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -73,10 +77,13 @@ function RoomManagement() {
   const [editingRoom, setEditingRoom] = useState(null);
   const [editFormData, setEditFormData] = useState({
     name: "",
+    type: "Room",
     capacity: 4,
     location: "",
     description: "",
     status: "Available",
+    hourly_rate: 0,
+    price_per_night: 0,
     amenities: [],
   });
 
@@ -211,10 +218,13 @@ function RoomManagement() {
     setEditingRoom(room);
     setEditFormData({
       name: room.name || "",
+      type: room.type || "Room",
       capacity: room.capacity || 4,
       location: room.location || "",
       description: room.description || "",
       status: room.status || "Available",
+      hourly_rate: room.hourly_rate || 0,
+      price_per_night: room.price_per_night || 0,
       amenities: Array.isArray(room.amenities) ? [...room.amenities] : [],
     });
     setOpenMenu(null);
@@ -239,10 +249,13 @@ function RoomManagement() {
     try {
       const updated = await updateRoom(editingRoom.id, {
         name: editFormData.name,
+        type: editFormData.type,
         capacity: Number(editFormData.capacity),
         location: editFormData.location,
         description: editFormData.description,
         status: editFormData.status,
+        hourly_rate: Number(editFormData.hourly_rate) || 0,
+        price_per_night: Number(editFormData.price_per_night) || 0,
         amenities: editFormData.amenities,
       });
 
@@ -271,7 +284,7 @@ function RoomManagement() {
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Room Management" theme={theme} />
 
       {/* Page Header */}
@@ -333,7 +346,7 @@ function RoomManagement() {
             key={item.label}
             className={`rounded-2xl border p-4 ${
               theme
-                ? "bg-slate-800 border-slate-700"
+                ? "bg-slate-900 border-slate-800"
                 : "bg-white border-slate-200 shadow-xs"
             }`}
           >
@@ -371,7 +384,7 @@ function RoomManagement() {
       {/* Search & Filters */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex flex-col md:flex-row gap-3">
@@ -468,7 +481,7 @@ function RoomManagement() {
                 openMenu === room.id ? "relative z-30" : "relative z-10"
               } ${
                 theme
-                  ? "bg-slate-800 border-slate-700 hover:border-slate-600"
+                  ? "bg-slate-900 border-slate-800 hover:border-slate-700"
                   : "bg-white border-slate-200 shadow-xs hover:border-blue-200"
               }`}
             >
@@ -612,6 +625,22 @@ function RoomManagement() {
                       <MapPin size={12} />
                       {room.location || "Office Space"}
                     </p>
+
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-medium border border-blue-500/20">
+                        {room.type || "Room"}
+                      </span>
+                      {room.hourly_rate > 0 && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
+                          {currencySymbol}{room.hourly_rate}/hr
+                        </span>
+                      )}
+                      {room.price_per_night > 0 && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold border border-purple-500/20">
+                          {currencySymbol}{room.price_per_night}/night
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div
@@ -689,7 +718,7 @@ function RoomManagement() {
         /* Room Table View */
         <section
           className={`mt-6 rounded-3xl border overflow-hidden shadow-xs ${
-            theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
+            theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
           }`}
         >
           <div className="overflow-x-auto">
@@ -698,7 +727,7 @@ function RoomManagement() {
                 <tr
                   className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
-                      ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                      ? "border-slate-800 bg-slate-950/60 text-slate-400"
                       : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
@@ -710,14 +739,14 @@ function RoomManagement() {
                   <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {filteredRooms.map((room) => {
                   const roomStatus = room.status || (room.is_active === false ? "Maintenance" : "Available");
                   return (
                     <tr
                       key={room.id}
                       className={`transition ${
-                        theme ? "hover:bg-slate-700/40" : "hover:bg-blue-50/40"
+                        theme ? "hover:bg-slate-800/40" : "hover:bg-blue-50/40"
                       }`}
                     >
                       {/* Room Details */}
@@ -745,7 +774,9 @@ function RoomManagement() {
                                 theme ? "text-gray-400" : "text-slate-500"
                               }`}
                             >
-                              {room.type || "Meeting Room"}
+                              {room.type || "Room"}
+                              {room.hourly_rate > 0 && ` • ${currencySymbol}${room.hourly_rate}/hr`}
+                              {room.price_per_night > 0 && ` • ${currencySymbol}${room.price_per_night}/night`}
                             </span>
                           </div>
                         </div>
@@ -1026,7 +1057,26 @@ function RoomManagement() {
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
-                    Capacity (Seats)
+                    Classification / Type
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.type}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, type: e.target.value })
+                    }
+                    placeholder="e.g. Deluxe Suite, VIP KTV, Boardroom"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Capacity (Seats / Guests)
                   </label>
                   <input
                     type="number"
@@ -1034,6 +1084,71 @@ function RoomManagement() {
                     value={editFormData.capacity}
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, capacity: e.target.value })
+                    }
+                    required
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Hourly Rate ({currencySymbol})
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={editFormData.hourly_rate}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, hourly_rate: e.target.value })
+                    }
+                    className={inputClass}
+                    placeholder="0 (Free)"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Nightly / Daily Rate ({currencySymbol})
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={editFormData.price_per_night}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, price_per_night: e.target.value })
+                    }
+                    className={inputClass}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Floor / Location
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.location}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, location: e.target.value })
                     }
                     required
                     className={inputClass}
@@ -1060,25 +1175,6 @@ function RoomManagement() {
                     <option value="Maintenance">Maintenance</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    theme ? "text-gray-300" : "text-slate-700"
-                  }`}
-                >
-                  Floor / Location
-                </label>
-                <input
-                  type="text"
-                  value={editFormData.location}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, location: e.target.value })
-                  }
-                  required
-                  className={inputClass}
-                />
               </div>
 
               <div>
@@ -1161,7 +1257,7 @@ function RoomManagement() {
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

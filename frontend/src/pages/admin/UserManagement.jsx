@@ -212,7 +212,7 @@ function UserManagement() {
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="User Management" theme={theme} />
 
       {/* Page Header */}
@@ -254,7 +254,7 @@ function UserManagement() {
           <div
             key={kpi.label}
             className={`rounded-2xl border p-4 ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+              theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -287,7 +287,7 @@ function UserManagement() {
       {/* Search & Filters */}
       <section
         className={`mt-6 rounded-2xl border p-4 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="flex flex-col sm:flex-row gap-3">
@@ -331,7 +331,7 @@ function UserManagement() {
       {/* User Table */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {loading ? (
@@ -343,7 +343,7 @@ function UserManagement() {
                 <tr
                   className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                     theme
-                      ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                      ? "border-slate-800 bg-slate-950/60 text-slate-400"
                       : "border-slate-200 bg-slate-50/80 text-slate-600"
                   }`}
                 >
@@ -354,7 +354,7 @@ function UserManagement() {
                   <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {filteredUsers.map((user) => {
                   const initials = user.name
                     ? user.name
@@ -492,13 +492,13 @@ function UserManagement() {
           <section
             className={`relative w-full max-w-md rounded-3xl shadow-2xl ${
               theme
-                ? "bg-slate-800 border border-slate-700"
+                ? "bg-slate-900 border border-slate-800"
                 : "bg-white border border-slate-200"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-slate-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <h3
@@ -634,13 +634,13 @@ function UserManagement() {
           <section
             className={`relative w-full max-w-md rounded-3xl shadow-2xl ${
               theme
-                ? "bg-slate-800 border border-slate-700"
+                ? "bg-slate-900 border border-slate-800"
                 : "bg-white border border-slate-200"
             }`}
           >
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-slate-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -767,7 +767,7 @@ function UserManagement() {
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

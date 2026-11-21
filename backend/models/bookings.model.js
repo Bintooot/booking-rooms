@@ -28,6 +28,9 @@ function formatBooking(row) {
     user_id: row.user_id || null,
     user_name: row.user_name || row.booker_name,
     user_email: row.user_email || null,
+    contact_phone: row.contact_phone || "",
+    total_price: Number(row.total_price) || 0,
+    special_requests: row.special_requests || "",
     date: dateStr,
     start_time: startTimeStr,
     end_time: endTimeStr,
@@ -65,17 +68,20 @@ export async function getBookingById(id) {
 export async function createBooking({
   room_id,
   user_id = null,
-  booker_name = "Team Member",
+  booker_name = "Guest",
   start_time,
   end_time,
   status = "confirmed",
-  title = "Meeting",
+  title = "Reservation",
   notes = "",
   attendees = 2,
+  contact_phone = "",
+  total_price = 0,
+  special_requests = "",
 }) {
   const result = await pool.query(
-    `INSERT INTO bookings (room_id, user_id, booker_name, start_time, end_time, status, title, notes, attendees)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO bookings (room_id, user_id, booker_name, start_time, end_time, status, title, notes, attendees, contact_phone, total_price, special_requests)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING *`,
     [
       Number(room_id),
@@ -87,6 +93,9 @@ export async function createBooking({
       title,
       notes,
       Number(attendees) || 2,
+      contact_phone || "",
+      Number(total_price) || 0,
+      special_requests || "",
     ]
   );
 
@@ -117,6 +126,9 @@ export async function updateBooking(id, fields) {
     "title",
     "notes",
     "attendees",
+    "contact_phone",
+    "total_price",
+    "special_requests",
     "check_in_time",
     "check_out_time",
   ];

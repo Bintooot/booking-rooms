@@ -7,6 +7,9 @@ export function normalizeRoom(r, fallback = {}) {
   const size = r.size || (capacity > 15 ? "large" : capacity > 6 ? "medium" : "small");
   return {
     ...r,
+    hourly_rate: Number(r.hourly_rate) || Number(fallback.hourly_rate) || 0,
+    price_per_night: Number(r.price_per_night) || Number(fallback.price_per_night) || 0,
+    type: r.type || fallback.type || "Room",
     status,
     is_active: r.is_active !== false && status !== "Maintenance",
     size,

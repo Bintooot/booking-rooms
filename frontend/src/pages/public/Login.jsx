@@ -64,7 +64,7 @@ function Login() {
     <main className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div
         className={`w-full max-w-4xl rounded-3xl border shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all duration-300 ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
         }`}
       >
         {/* Left column / Hero brand panel */}

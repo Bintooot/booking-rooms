@@ -18,21 +18,29 @@ CREATE TABLE IF NOT EXISTS rooms (
   description TEXT,
   amenities TEXT[] DEFAULT '{}',
   is_active BOOLEAN NOT NULL DEFAULT true,
-  type VARCHAR(50) DEFAULT 'Meeting Room',
+  type VARCHAR(50) DEFAULT 'Room',
+  hourly_rate NUMERIC DEFAULT 0,
+  price_per_night NUMERIC DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS hourly_rate NUMERIC DEFAULT 0;
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS price_per_night NUMERIC DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS bookings (
   id SERIAL PRIMARY KEY,
   room_id INT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
   user_id INT REFERENCES users(id) ON DELETE SET NULL,
   booker_name VARCHAR(100) NOT NULL,
-  title VARCHAR(150) DEFAULT 'Meeting',
+  title VARCHAR(150) DEFAULT 'Reservation',
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
   notes TEXT DEFAULT '',
   attendees INT DEFAULT 2,
+  contact_phone VARCHAR(50) DEFAULT '',
+  total_price NUMERIC DEFAULT 0,
+  special_requests TEXT DEFAULT '',
   check_in_time TIMESTAMPTZ DEFAULT NULL,
   check_out_time TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -42,6 +50,9 @@ CREATE TABLE IF NOT EXISTS bookings (
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_in_time TIMESTAMPTZ DEFAULT NULL;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_out_time TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50) DEFAULT '';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS total_price NUMERIC DEFAULT 0;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS special_requests TEXT DEFAULT '';
 
 ALTER TABLE bookings DROP CONSTRAINT IF EXISTS no_overlapping_bookings;
 
@@ -89,16 +100,19 @@ CREATE TABLE IF NOT EXISTS notification_reads (
 CREATE TABLE IF NOT EXISTS system_settings (
   id INT PRIMARY KEY DEFAULT 1,
   system_name VARCHAR(100) DEFAULT 'SpaceSync',
-  system_tagline VARCHAR(255) DEFAULT 'Workspace & Room Reservation',
+  system_tagline VARCHAR(255) DEFAULT 'Universal Room Reservation System',
   org_name VARCHAR(150) DEFAULT 'HIJO Resources Corporation',
-  building_name VARCHAR(150) DEFAULT 'Headquarters Building A',
+  building_name VARCHAR(150) DEFAULT 'Main Facility',
+  venue_type VARCHAR(50) DEFAULT 'general',
+  currency_symbol VARCHAR(10) DEFAULT '$',
+  pricing_enabled BOOLEAN DEFAULT false,
   favicon_url TEXT DEFAULT '',
   logo_url TEXT DEFAULT '',
   contact_email VARCHAR(255) DEFAULT 'support@company.com',
   contact_phone VARCHAR(50) DEFAULT '+1 (555) 019-2834',
   support_url VARCHAR(255) DEFAULT '',
   max_booking_days INT DEFAULT 30,
-  max_duration_hours INT DEFAULT 4,
+  max_duration_hours INT DEFAULT 8,
   buffer_minutes INT DEFAULT 15,
   auto_release_minutes INT DEFAULT 15,
   email_reminders BOOLEAN DEFAULT true,
@@ -107,17 +121,23 @@ CREATE TABLE IF NOT EXISTS system_settings (
   CONSTRAINT single_row_check CHECK (id = 1)
 );
 
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS venue_type VARCHAR(50) DEFAULT 'general';
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '$';
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS pricing_enabled BOOLEAN DEFAULT false;
+
 -- Seed Default Settings
 INSERT INTO system_settings (
   id, system_name, system_tagline, org_name, building_name, 
+  venue_type, currency_symbol, pricing_enabled,
   favicon_url, logo_url, contact_email, contact_phone, support_url,
   max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, 
   email_reminders, conflict_strict
 )
 VALUES (
-  1, 'SpaceSync', 'Workspace & Room Reservation', 'HIJO Resources Corporation', 'Headquarters Building A',
+  1, 'SpaceSync', 'Universal Room Reservation System', 'HIJO Resources Corporation', 'Main Facility',
+  'general', '$', false,
   '', '', 'support@company.com', '+1 (555) 019-2834', '',
-  30, 4, 15, 15, true, true
+  30, 8, 15, 15, true, true
 )
 ON CONFLICT (id) DO NOTHING;
 

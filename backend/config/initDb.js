@@ -9,11 +9,20 @@ export async function initDb() {
   try {
     console.log("[DB] Verifying database schema and running migrations...");
 
-    // 1. Ensure user_id, check_in_time, check_out_time columns on bookings
+    // 1. Ensure user_id, check_in_time, check_out_time, contact_phone, total_price, special_requests columns on bookings
     await pool.query(`
       ALTER TABLE bookings ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
       ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_in_time TIMESTAMPTZ DEFAULT NULL;
       ALTER TABLE bookings ADD COLUMN IF NOT EXISTS check_out_time TIMESTAMPTZ DEFAULT NULL;
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50) DEFAULT '';
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS total_price NUMERIC DEFAULT 0;
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS special_requests TEXT DEFAULT '';
+    `);
+
+    // 1.1 Ensure hourly_rate and price_per_night on rooms
+    await pool.query(`
+      ALTER TABLE rooms ADD COLUMN IF NOT EXISTS hourly_rate NUMERIC DEFAULT 0;
+      ALTER TABLE rooms ADD COLUMN IF NOT EXISTS price_per_night NUMERIC DEFAULT 0;
     `);
 
     // 2. Ensure audit_logs table
@@ -76,15 +85,18 @@ export async function initDb() {
       );
 
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS system_name VARCHAR(100) DEFAULT 'SpaceSync';
-      ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS system_tagline VARCHAR(255) DEFAULT 'Workspace & Room Reservation';
+      ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS system_tagline VARCHAR(255) DEFAULT 'Universal Room Reservation System';
+      ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS venue_type VARCHAR(50) DEFAULT 'general';
+      ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '$';
+      ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS pricing_enabled BOOLEAN DEFAULT false;
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS favicon_url TEXT DEFAULT '';
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '';
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255) DEFAULT 'support@company.com';
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(50) DEFAULT '+1 (555) 019-2834';
       ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS support_url VARCHAR(255) DEFAULT '';
 
-      INSERT INTO system_settings (id, system_name, system_tagline, org_name, building_name, max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, email_reminders, conflict_strict)
-      VALUES (1, 'SpaceSync', 'Workspace & Room Reservation', 'HIJO Resources Corporation', 'Headquarters Building A', 30, 4, 15, 15, true, true)
+      INSERT INTO system_settings (id, system_name, system_tagline, org_name, building_name, venue_type, currency_symbol, pricing_enabled, max_booking_days, max_duration_hours, buffer_minutes, auto_release_minutes, email_reminders, conflict_strict)
+      VALUES (1, 'SpaceSync', 'Universal Room Reservation System', 'HIJO Resources Corporation', 'Main Facility', 'general', '$', false, 30, 8, 15, 15, true, true)
       ON CONFLICT (id) DO NOTHING;
     `);
 

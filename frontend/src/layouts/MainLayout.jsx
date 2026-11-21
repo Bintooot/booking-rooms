@@ -7,10 +7,10 @@ function MainLayout() {
 
   return (
     <main
-      className={`min-h-screen w-full flex flex-col relative overflow-y-auto ${
+      className={`min-h-screen w-full flex flex-col relative overflow-y-auto transition-colors duration-200 ${
         theme
-          ? "bg-slate-900 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-size[32px_32px]"
-          : "bg-gray-100/50 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-size[32px_32px]"
+          ? "bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.15),rgba(255,255,255,0))]"
+          : "bg-slate-50 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.12),rgba(255,255,255,0))]"
       }`}
     >
       <div className="flex-1 flex flex-col justify-center">

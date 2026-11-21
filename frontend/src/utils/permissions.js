@@ -1,17 +1,37 @@
 // Centralized Role-Based Access Control and Permission Matrix
 
 export const INITIAL_PERMISSIONS = [
-  { id: "book_room", name: "Reserve Conference Room", admin: true, manager: true, employee: true },
+  { id: "book_room", name: "Reserve Room / Space", admin: true, manager: true, employee: true },
   { id: "cancel_own", name: "Cancel Own Bookings", admin: true, manager: true, employee: true },
   { id: "cancel_any", name: "Cancel / Override Any Booking", admin: true, manager: true, employee: false },
   { id: "create_room", name: "Create & Provision Rooms", admin: true, manager: false, employee: false },
-  { id: "edit_room", name: "Edit Room & Change Status", admin: true, manager: true, employee: false },
+  { id: "edit_room", name: "Edit Room & Change Rates/Status", admin: true, manager: true, employee: false },
   { id: "delete_room", name: "Delete Rooms", admin: true, manager: false, employee: false },
   { id: "manage_users", name: "Create & Manage Users", admin: true, manager: false, employee: false },
-  { id: "view_reports", name: "Access Usage Reports & Export", admin: true, manager: true, employee: false },
+  { id: "view_reports", name: "Access Usage Reports & Financials", admin: true, manager: true, employee: false },
 ];
 
-let memoryPermissions = [...INITIAL_PERMISSIONS];
+const STORAGE_KEY = "confe_role_permissions";
+
+function loadStoredPermissions() {
+  if (typeof window === "undefined" || !window.localStorage) return [...INITIAL_PERMISSIONS];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [...INITIAL_PERMISSIONS];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return INITIAL_PERMISSIONS.map((initial) => {
+        const found = parsed.find((p) => p.id === initial.id);
+        return found ? { ...initial, ...found, admin: true } : initial;
+      });
+    }
+  } catch (_e) {
+    // fallback to initial
+  }
+  return [...INITIAL_PERMISSIONS];
+}
+
+let memoryPermissions = loadStoredPermissions();
 
 export function normalizeRoleKey(role) {
   if (!role) return "employee";
@@ -27,11 +47,21 @@ export function getPermissions() {
 
 export function savePermissions(permissions) {
   memoryPermissions = Array.isArray(permissions) ? [...permissions] : [...INITIAL_PERMISSIONS];
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryPermissions));
+    } catch (_e) {}
+  }
   window.dispatchEvent(new CustomEvent("confe_permissions_updated", { detail: memoryPermissions }));
 }
 
 export function resetPermissions() {
   memoryPermissions = [...INITIAL_PERMISSIONS];
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch (_e) {}
+  }
   window.dispatchEvent(new CustomEvent("confe_permissions_updated", { detail: INITIAL_PERMISSIONS }));
   return INITIAL_PERMISSIONS;
 }

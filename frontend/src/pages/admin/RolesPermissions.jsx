@@ -31,7 +31,7 @@ function RolesPermissions() {
   };
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Roles & Permissions" theme={theme} />
 
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -58,8 +58,8 @@ function RolesPermissions() {
             onClick={handleReset}
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition border ${
               theme
-                ? "border-slate-700 bg-slate-800 text-gray-300 hover:bg-slate-700"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                ? "border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs"
             }`}
           >
             <RotateCcw size={14} /> Reset Defaults
@@ -76,7 +76,7 @@ function RolesPermissions() {
 
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         <div className="overflow-x-auto">
@@ -85,7 +85,7 @@ function RolesPermissions() {
               <tr
                 className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                   theme
-                    ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                    ? "border-slate-800 bg-slate-950/60 text-slate-400"
                     : "border-slate-200 bg-slate-50/80 text-slate-600"
                 }`}
               >
@@ -95,7 +95,7 @@ function RolesPermissions() {
                 <th className="py-4 px-6 text-center">Employee</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
               {permissions.map((perm) => (
                 <tr key={perm.id} className="transition hover:bg-blue-500/5">
                   <td className="py-4 px-6 font-normal">
@@ -137,7 +137,7 @@ function RolesPermissions() {
           </table>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

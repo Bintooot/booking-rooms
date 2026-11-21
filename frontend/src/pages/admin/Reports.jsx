@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import { getRooms } from "../../api/rooms.js";
 import { getBookings } from "../../api/bookings.js";
 import { useToast } from "../../components/Toast.jsx";
@@ -18,11 +19,14 @@ import {
   TrendingUp,
   PieChart,
   AlertTriangle,
+  DollarSign,
 } from "lucide-react";
 
 function Reports() {
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { settings } = useSettings();
+  const currencySymbol = settings?.currencySymbol || "$";
 
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -60,6 +64,13 @@ function Reports() {
       return sum + calculateDurationHours(b.start_time, b.end_time);
     }, 0);
     return Number(total.toFixed(1));
+  }, [periodBookings]);
+
+  const totalRevenue = useMemo(() => {
+    return periodBookings.reduce((sum, b) => {
+      if (b.status === "cancelled") return sum;
+      return sum + (Number(b.total_price) || 0);
+    }, 0);
   }, [periodBookings]);
 
   const avgMeetingHours = totalBookings > 0 ? (totalHoursBooked / totalBookings).toFixed(1) : "0";
@@ -111,6 +122,7 @@ function Reports() {
   const exportCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += `Reporting Period: ${timeRange}\n`;
+    csvContent += `Gross Revenue: ${currencySymbol}${totalRevenue}\n`;
     csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
     csvContent += "Room Name,Capacity,Location,Bookings Count,Scheduled Hours,Overtime Hours,Total Utilized Hours,Demand Score\n";
 
@@ -132,7 +144,7 @@ function Reports() {
   };
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Usage Reports & Analytics" theme={theme} />
 
       {/* Page Header */}
@@ -181,7 +193,7 @@ function Reports() {
       </div>
 
       {/* Top metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
         {[
           {
             label: "Total Reservations",
@@ -193,8 +205,15 @@ function Reports() {
           {
             label: "Scheduled Hours",
             value: `${totalHoursBooked}h`,
-            sub: `Avg: ${avgMeetingHours}h / meeting`,
+            sub: `Avg: ${avgMeetingHours}h / session`,
             icon: <Clock size={18} />,
+            alert: false,
+          },
+          {
+            label: "Booking Revenue",
+            value: `${currencySymbol}${totalRevenue.toLocaleString()}`,
+            sub: `${confirmedBookings} billable sessions`,
+            icon: <DollarSign size={18} />,
             alert: false,
           },
           {
@@ -219,7 +238,7 @@ function Reports() {
           {
             label: "Cancellation Rate",
             value: `${cancellationRate}%`,
-            sub: `${cancelledBookings} meetings cancelled`,
+            sub: `${cancelledBookings} cancelled`,
             icon: <PieChart size={18} />,
             alert: false,
           },
@@ -232,7 +251,7 @@ function Reports() {
                   ? "bg-rose-950/20 border-rose-500/40"
                   : "bg-rose-50/70 border-rose-200 shadow-xs"
                 : theme
-                  ? "bg-slate-800 border-slate-700"
+                  ? "bg-slate-900 border-slate-800"
                   : "bg-white border-slate-200 shadow-xs"
             }`}
           >
@@ -285,10 +304,10 @@ function Reports() {
       {/* Detailed Room Breakdown Table */}
       <section
         className={`mt-6 rounded-3xl border overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3
             className={`text-sm font-semibold ${
               theme ? "text-white" : "text-slate-900"
@@ -307,7 +326,7 @@ function Reports() {
               <tr
                 className={`border-b text-[11px] font-medium uppercase tracking-wider ${
                   theme
-                    ? "border-slate-700 bg-slate-900/40 text-gray-400"
+                    ? "border-slate-800 bg-slate-950/60 text-slate-400"
                     : "border-slate-200 bg-slate-50/80 text-slate-600"
                 }`}
               >
@@ -321,7 +340,7 @@ function Reports() {
                 <th className="py-3.5 px-5">Demand Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-xs">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
               {roomStats.map((room) => (
                 <tr key={room.name} className="transition hover:bg-blue-500/5">
                   <td className="py-4 px-5 font-medium">
@@ -366,7 +385,7 @@ function Reports() {
           </table>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

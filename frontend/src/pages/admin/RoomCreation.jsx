@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import { getRooms, createRoom } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
 import { logAuditEvent } from "../../services/auditService.js";
@@ -16,23 +17,38 @@ import {
   FileText,
   Check,
   Building,
+  DollarSign,
+  Tag,
 } from "lucide-react";
 
-const AVAILABLE_AMENITIES = [
-  "WiFi",
-  "Projector",
-  "Display",
-  "Whiteboard",
-  "Video Conference",
-  "Sound System",
-  "Air Conditioning",
-  "Coffee Machine",
-];
+const ALL_AMENITIES_BY_TYPE = {
+  general: ["WiFi", "Display Monitor", "Air Conditioning", "Sound System", "Whiteboard", "Restroom Access", "Projector", "Coffee Station"],
+  ktv: ["Wireless Microphones", "High-End Audio", "LED Disco Lights", "Touchscreen Song Selector", "Tambourines", "Minibar", "Private Restroom", "Air Conditioning"],
+  hotel: ["Ensuite Bathroom", "King Bed", "Smart 4K TV", "High-Speed WiFi", "Air Conditioning", "Mini Fridge", "Complimentary Breakfast", "Daily Housekeeping"],
+  corporate: ["4K Video Conference", "Projector & Screen", "Whiteboard", "High-Speed WiFi", "Ergonomic Chairs", "Coffee Station", "Podium"],
+  studio: ["Acoustic Treatment", "Studio Condenser Mics", "Audio Interface & Monitors", "Drum Kit & Amps", "Softbox Studio Lighting", "Green Screen"],
+};
+
+const ROOM_TYPES_BY_VENUE = {
+  general: ["Standard Room", "Executive Suite", "Event Hall", "Private Pod", "Meeting Room"],
+  ktv: ["Small KTV Box", "Medium Singing Suite", "Large Party Room", "VIP Karaoke Lounge"],
+  hotel: ["Standard Single", "Deluxe Double", "Executive King Suite", "Family Suite", "Transit Day-Use Room"],
+  corporate: ["Conference Room", "Executive Boardroom", "Focus Pod", "Training Room", "Huddle Space"],
+  studio: ["Podcast Studio", "Audio Recording Booth", "Band Rehearsal Studio", "Photo & Video Studio"],
+};
 
 function RoomCreation() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { settings } = useSettings();
+
+  const venueType = settings?.venueType || "general";
+  const currencySymbol = settings?.currencySymbol || "$";
+  const pricingEnabled = Boolean(settings?.pricingEnabled);
+
+  const availableAmenities = ALL_AMENITIES_BY_TYPE[venueType] || ALL_AMENITIES_BY_TYPE.general;
+  const suggestedTypes = ROOM_TYPES_BY_VENUE[venueType] || ROOM_TYPES_BY_VENUE.general;
 
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +57,13 @@ function RoomCreation() {
 
   const [formData, setFormData] = useState({
     roomName: "",
-    roomType: "Conference Room",
-    capacity: 8,
-    location: "2nd Floor",
+    roomType: suggestedTypes[0] || "Standard Room",
+    capacity: 6,
+    location: "Main Floor",
+    hourly_rate: 0,
+    price_per_night: 0,
     description: "",
-    amenities: ["WiFi", "Display"],
+    amenities: [availableAmenities[0], availableAmenities[1]],
   });
 
   const loadRooms = useCallback(async () => {
@@ -96,6 +114,8 @@ function RoomCreation() {
         description: formData.description,
         amenities: formData.amenities,
         type: formData.roomType,
+        hourly_rate: Number(formData.hourly_rate) || 0,
+        price_per_night: Number(formData.price_per_night) || 0,
       });
 
       setRooms((prev) => [newRoom, ...prev]);
@@ -118,11 +138,13 @@ function RoomCreation() {
       setShowForm(false);
       setFormData({
         roomName: "",
-        roomType: "Conference Room",
-        capacity: 8,
-        location: "2nd Floor",
+        roomType: suggestedTypes[0] || "Standard Room",
+        capacity: 6,
+        location: "Main Floor",
+        hourly_rate: 0,
+        price_per_night: 0,
         description: "",
-        amenities: ["WiFi", "Display"],
+        amenities: [availableAmenities[0], availableAmenities[1]],
       });
     } catch {
       showToast("Failed to create room. Please try again.", "error");
@@ -138,7 +160,7 @@ function RoomCreation() {
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Room Creation" theme={theme} />
 
       {/* Page introduction */}
@@ -173,7 +195,7 @@ function RoomCreation() {
       {/* Floor grid */}
       <section
         className={`relative rounded-3xl border p-6 overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {/* Decorative architectural grid background */}
@@ -197,8 +219,8 @@ function RoomCreation() {
                 key={room.id}
                 className={`relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
                   theme
-                    ? "bg-slate-900/90 border-slate-700 hover:border-blue-500/50"
-                    : "bg-white border-slate-200 shadow-xs hover:border-blue-300"
+                    ? "bg-slate-950/80 border-slate-800 hover:border-blue-500/50"
+                    : "bg-slate-50/80 border-slate-200 shadow-2xs hover:border-blue-300"
                 } ${
                   room.size === "large" || room.capacity > 15
                     ? "lg:row-span-2"
@@ -266,6 +288,21 @@ function RoomCreation() {
                       <MapPin size={11} />
                       {room.location || "Main Floor"}
                     </p>
+
+                    {(room.hourly_rate > 0 || room.price_per_night > 0) && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        {room.hourly_rate > 0 && (
+                          <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            {currencySymbol}{room.hourly_rate}/hr
+                          </span>
+                        )}
+                        {room.price_per_night > 0 && (
+                          <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                            {currencySymbol}{room.price_per_night}/night
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div
@@ -347,14 +384,14 @@ function RoomCreation() {
           <section
             className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-3xl shadow-2xl ${
               theme
-                ? "bg-slate-800 border border-slate-700"
+                ? "bg-slate-900 border border-slate-800"
                 : "bg-white border border-slate-200"
             }`}
           >
             {/* Modal header */}
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-slate-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -436,7 +473,7 @@ function RoomCreation() {
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
-                    Room Classification
+                    Room Classification / Type
                   </label>
                   <select
                     name="roomType"
@@ -445,12 +482,12 @@ function RoomCreation() {
                     className={inputClass}
                     required
                   >
-                    <option value="Conference Room">Conference Room</option>
-                    <option value="Meeting Room">Meeting Room</option>
-                    <option value="Huddle Room">Huddle Room</option>
-                    <option value="Training Room">Training Room</option>
-                    <option value="Boardroom">Boardroom</option>
-                    <option value="Private Office">Private Office</option>
+                    {suggestedTypes.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                    <option value="Custom Space">Custom Space</option>
                   </select>
                 </div>
 
@@ -461,7 +498,7 @@ function RoomCreation() {
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
-                    Seating Capacity
+                    Capacity (Persons / Guests)
                   </label>
                   <div className="relative">
                     <Users
@@ -490,7 +527,7 @@ function RoomCreation() {
                       theme ? "text-gray-300" : "text-slate-700"
                     }`}
                   >
-                    Floor / Wing Location
+                    Floor / Zone Location
                   </label>
                   <div className="relative">
                     <MapPin
@@ -504,9 +541,67 @@ function RoomCreation() {
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
-                      placeholder="e.g. 2nd Floor, East Wing"
+                      placeholder="e.g. 2nd Floor, Room 204"
                       className={`${inputClass} pl-10`}
                       required
+                    />
+                  </div>
+                </div>
+
+                {/* Hourly Rate */}
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Hourly Rate ({currencySymbol})
+                  </label>
+                  <div className="relative">
+                    <DollarSign
+                      size={16}
+                      className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
+                        theme ? "text-gray-500" : "text-slate-400"
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      name="hourly_rate"
+                      value={formData.hourly_rate}
+                      onChange={handleChange}
+                      placeholder="0 (Free / Internal)"
+                      min="0"
+                      step="any"
+                      className={`${inputClass} pl-10`}
+                    />
+                  </div>
+                </div>
+
+                {/* Nightly / Daily Rate */}
+                <div>
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      theme ? "text-gray-300" : "text-slate-700"
+                    }`}
+                  >
+                    Nightly / Daily Rate ({currencySymbol})
+                  </label>
+                  <div className="relative">
+                    <DollarSign
+                      size={16}
+                      className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
+                        theme ? "text-gray-500" : "text-slate-400"
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      name="price_per_night"
+                      value={formData.price_per_night}
+                      onChange={handleChange}
+                      placeholder="0 (Optional for hotel/overnight)"
+                      min="0"
+                      step="any"
+                      className={`${inputClass} pl-10`}
                     />
                   </div>
                 </div>
@@ -547,7 +642,7 @@ function RoomCreation() {
                   Included Amenities
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_AMENITIES.map((amenity) => {
+                  {availableAmenities.map((amenity) => {
                     const isSelected = formData.amenities.includes(amenity);
                     return (
                       <button
@@ -600,7 +695,7 @@ function RoomCreation() {
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

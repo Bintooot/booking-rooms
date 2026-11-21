@@ -112,7 +112,7 @@ function UserCreation() {
   }`;
 
   return (
-    <main className="w-full min-h-screen">
+    <div className="w-full pb-12">
       <Banner header="User Creation" theme={theme} />
 
       {/* Header */}
@@ -150,7 +150,7 @@ function UserCreation() {
       {/* User grid */}
       <section
         className={`relative rounded-2xl border p-6 overflow-hidden ${
-          theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+          theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
         }`}
       >
         {/* Background decoration */}
@@ -222,8 +222,8 @@ function UserCreation() {
                 key={user.id}
                 className={`group min-h-62.5 rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                   theme
-                    ? "bg-slate-900/60 border-slate-700 hover:border-slate-600"
-                    : "bg-white border-slate-200 shadow-xs hover:border-blue-200"
+                    ? "bg-slate-950/70 border-slate-800 hover:border-slate-700"
+                    : "bg-slate-50/80 border-slate-200 shadow-2xs hover:border-blue-200"
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -316,14 +316,14 @@ function UserCreation() {
           <section
             className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide rounded-2xl shadow-2xl ${
               theme
-                ? "bg-slate-800 border border-slate-700"
+                ? "bg-slate-900 border border-slate-800"
                 : "bg-white border border-slate-200"
             }`}
           >
             {/* Modal header */}
             <div
               className={`flex items-center justify-between px-6 py-5 border-b ${
-                theme ? "border-slate-700" : "border-slate-100"
+                theme ? "border-slate-800" : "border-slate-100"
               }`}
             >
               <div className="flex items-center gap-4">
@@ -549,7 +549,7 @@ function UserCreation() {
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

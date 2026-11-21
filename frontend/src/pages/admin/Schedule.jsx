@@ -6,6 +6,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import Banner from "../../components/Banner.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSettings } from "../../context/SettingsContext.jsx";
 import {
   getBookings,
   createBooking,
@@ -14,7 +15,7 @@ import {
 } from "../../api/bookings.js";
 import { getRooms } from "../../api/rooms.js";
 import { useToast } from "../../components/Toast.jsx";
-import { validateBookingAgainstPolicy } from "../../services/settingsService.js";
+import { validateBookingAgainstPolicy, timeStringToMinutes } from "../../services/settingsService.js";
 import { logAuditEvent } from "../../services/auditService.js";
 import { addNotification } from "../../services/notificationService.js";
 import {
@@ -29,6 +30,8 @@ import {
   Trash2,
   Ban,
   Filter,
+  DollarSign,
+  Phone,
 } from "lucide-react";
 
 const CATEGORY_THEMES = {
@@ -63,6 +66,8 @@ function Schedule() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { settings } = useSettings();
+  const currencySymbol = settings?.currencySymbol || "$";
 
   const [roomFilter, setRoomFilter] = useState("All Rooms");
   const [bookings, setBookings] = useState([]);
@@ -78,11 +83,14 @@ function Schedule() {
     room_id: "",
     title: "",
     booker_name: "",
+    contact_phone: "",
     date: new Date().toISOString().split("T")[0],
     start_time: "09:00",
     end_time: "10:00",
     attendees: 4,
     notes: "",
+    special_requests: "",
+    total_price: "",
     color: "blue",
   });
 
@@ -299,12 +307,24 @@ function Schedule() {
     }
 
     try {
+      const hourlyRate = Number(selectedRoom?.hourly_rate) || 0;
+      const startMin = timeStringToMinutes(newBookingData.start_time);
+      const endMin = timeStringToMinutes(newBookingData.end_time);
+      const durationHours = endMin > startMin ? (endMin - startMin) / 60 : 0;
+      const autoPrice = Number((durationHours * hourlyRate).toFixed(2));
+      const finalPrice = newBookingData.total_price !== "" && !isNaN(Number(newBookingData.total_price))
+        ? Number(newBookingData.total_price)
+        : autoPrice;
+
       const created = await createBooking({
         room_id: Number(newBookingData.room_id),
         user_id: user?.id,
         room_name: roomName,
         title: newBookingData.title,
         booker_name: newBookingData.booker_name,
+        contact_phone: newBookingData.contact_phone || "",
+        total_price: finalPrice,
+        special_requests: newBookingData.special_requests || "",
         date: newBookingData.date,
         start_time: newBookingData.start_time,
         end_time: newBookingData.end_time,
@@ -338,11 +358,14 @@ function Schedule() {
         room_id: rooms[0]?.id || "",
         title: "",
         booker_name: "",
+        contact_phone: "",
         date: new Date().toISOString().split("T")[0],
         start_time: "09:00",
         end_time: "10:00",
         attendees: 4,
         notes: "",
+        special_requests: "",
+        total_price: "",
         color: "blue",
       });
     } catch {
@@ -388,7 +411,7 @@ function Schedule() {
   }`;
 
   return (
-    <main className="w-full min-h-screen pb-16">
+    <div className="w-full pb-16">
       <Banner header="Schedule & Calendar" theme={theme} />
 
       {/* Header & Quick Action Bar */}
@@ -427,7 +450,7 @@ function Schedule() {
           <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-xs transition ${
               theme
-                ? "bg-slate-800 border-slate-700 text-slate-200"
+                ? "bg-slate-900 border-slate-800 text-slate-200"
                 : "bg-white border-slate-200 text-slate-700"
             }`}
           >
@@ -472,8 +495,8 @@ function Schedule() {
       <section
         className={`mt-4 px-4 py-2.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs transition ${
           theme
-            ? "bg-slate-800/80 border-slate-700/80 text-slate-300"
-            : "bg-white border-slate-200 text-slate-600"
+            ? "bg-slate-900/90 border-slate-800 text-slate-300"
+            : "bg-white border-slate-200 text-slate-600 shadow-xs"
         }`}
       >
         <div className="flex items-center gap-2 text-[11px]">
@@ -515,8 +538,8 @@ function Schedule() {
       <section
         className={`mt-4 rounded-3xl border p-4 md:p-6 shadow-xs transition ${
           theme
-            ? "bg-slate-800/90 border-slate-700 text-slate-100"
-            : "bg-white border-slate-200 text-slate-800"
+            ? "bg-slate-900 border-slate-800 text-slate-100"
+            : "bg-white border-slate-200 text-slate-800 shadow-xs"
         }`}
       >
         {loading ? (
@@ -803,7 +826,7 @@ function Schedule() {
                 >
                   {rooms.map((room) => (
                     <option key={room.id} value={room.id} className={theme ? "bg-slate-900 text-white" : "bg-white text-slate-900"}>
-                      {room.name} ({room.capacity} seats · {room.location})
+                      {room.name} {room.hourly_rate > 0 ? `(${currencySymbol}${room.hourly_rate}/hr)` : ""} ({room.capacity} seats · {room.location})
                     </option>
                   ))}
                 </select>
@@ -812,11 +835,11 @@ function Schedule() {
               {/* Meeting title */}
               <div>
                 <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
-                  Meeting / Reservation Title
+                  Reservation Title
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Q3 Design Sprint & Planning"
+                  placeholder="e.g. Executive Discussion, VIP Party, or Room Stay"
                   value={newBookingData.title}
                   onChange={(e) =>
                     setNewBookingData({
@@ -829,24 +852,47 @@ function Schedule() {
                 />
               </div>
 
-              {/* Booker name */}
-              <div>
-                <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
-                  Organizer / Booker Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Alex Morgan"
-                  value={newBookingData.booker_name}
-                  onChange={(e) =>
-                    setNewBookingData({
-                      ...newBookingData,
-                      booker_name: e.target.value,
-                    })
-                  }
-                  required
-                  className={inputClass}
-                />
+              {/* Booker name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                    Customer / Guest Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={newBookingData.booker_name}
+                    onChange={(e) =>
+                      setNewBookingData({
+                        ...newBookingData,
+                        booker_name: e.target.value,
+                      })
+                    }
+                    required
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                    Contact Phone
+                  </label>
+                  <div className="relative">
+                    <Phone size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="tel"
+                      placeholder="e.g. +1 555-0199"
+                      value={newBookingData.contact_phone}
+                      onChange={(e) =>
+                        setNewBookingData({
+                          ...newBookingData,
+                          contact_phone: e.target.value,
+                        })
+                      }
+                      className={`${inputClass} pl-9`}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Date & Attendees */}
@@ -966,6 +1012,55 @@ function Schedule() {
                 </div>
               </div>
 
+              {/* Special Requests */}
+              <div>
+                <label className={`block text-xs font-medium mb-1.5 ${theme ? "text-slate-300" : "text-slate-700"}`}>
+                  Special Requests / Add-ons
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Extra wireless mics, food/beverage combo, early check-in"
+                  value={newBookingData.special_requests}
+                  onChange={(e) =>
+                    setNewBookingData({
+                      ...newBookingData,
+                      special_requests: e.target.value,
+                    })
+                  }
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Price Calculation Card */}
+              {(() => {
+                const selRoom = rooms.find((r) => String(r.id) === String(newBookingData.room_id));
+                const rate = Number(selRoom?.hourly_rate) || 0;
+                const sMin = timeStringToMinutes(newBookingData.start_time);
+                const eMin = timeStringToMinutes(newBookingData.end_time);
+                const durHours = eMin > sMin ? (eMin - sMin) / 60 : 0;
+                const autoBill = Number((durHours * rate).toFixed(2));
+
+                if (rate > 0 || settings.pricingEnabled) {
+                  return (
+                    <div className="p-3 rounded-2xl border bg-emerald-500/5 border-emerald-500/20 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                          <DollarSign size={13} /> Rate Calculation
+                        </span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {currencySymbol}
+                          {newBookingData.total_price !== "" ? newBookingData.total_price : autoBill.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        {durHours.toFixed(1)} hrs duration @ {currencySymbol}{rate}/hr
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {/* Actions */}
               <div
                 className={`flex justify-end gap-3 pt-4 border-t ${
@@ -1074,6 +1169,33 @@ function Schedule() {
                 </span>
               </div>
 
+              {selectedBooking.contact_phone && (
+                <div className={`flex items-center gap-2 px-1 ${theme ? "text-slate-400" : "text-slate-600"}`}>
+                  <Phone size={14} className="shrink-0 text-emerald-500" />
+                  <span>Contact: {selectedBooking.contact_phone}</span>
+                </div>
+              )}
+
+              {selectedBooking.total_price > 0 && (
+                <div className={`flex items-center gap-2 px-1 text-emerald-600 dark:text-emerald-400 font-semibold`}>
+                  <DollarSign size={14} className="shrink-0" />
+                  <span>Total Bill: {currencySymbol}{Number(selectedBooking.total_price).toLocaleString()}</span>
+                </div>
+              )}
+
+              {selectedBooking.special_requests && (
+                <div
+                  className={`mt-2 p-2.5 rounded-xl border text-xs ${
+                    theme
+                      ? "bg-slate-800/80 border-slate-700/60 text-slate-300"
+                      : "bg-blue-50/70 border-blue-200 text-slate-700"
+                  }`}
+                >
+                  <p className="text-[10px] uppercase font-semibold text-blue-500 mb-0.5">Special Requests & Add-ons</p>
+                  <p>{selectedBooking.special_requests}</p>
+                </div>
+              )}
+
               {selectedBooking.notes && (
                 <div
                   className={`mt-3 p-3 rounded-2xl border text-xs ${
@@ -1118,7 +1240,7 @@ function Schedule() {
           </section>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

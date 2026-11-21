@@ -73,7 +73,7 @@ function Notifications() {
   });
 
   return (
-    <main className="w-full min-h-screen pb-12">
+    <div className="w-full pb-12">
       <Banner header="Notifications" theme={theme} />
 
       {/* Header */}
@@ -101,8 +101,8 @@ function Notifications() {
             onClick={markAllAsRead}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition ${
               theme
-                ? "bg-slate-800 border-slate-700 text-gray-300 hover:bg-slate-700"
-                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                ? "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs"
             }`}
           >
             <Check size={14} /> Mark All Read
@@ -113,8 +113,8 @@ function Notifications() {
             onClick={clearAll}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium text-red-500 transition ${
               theme
-                ? "bg-slate-800 border-slate-700 hover:bg-red-500/10"
-                : "bg-white border-slate-200 hover:bg-red-50"
+                ? "bg-slate-900 border-slate-800 hover:bg-red-500/10"
+                : "bg-white border-slate-200 hover:bg-red-50 shadow-2xs"
             }`}
           >
             <Trash2 size={14} /> Clear All
@@ -131,8 +131,8 @@ function Notifications() {
             filter === "all"
               ? "bg-blue-600 text-white shadow-xs"
               : theme
-                ? "bg-slate-800 text-gray-400 hover:text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-2xs"
           }`}
         >
           All ({notifications.length})
@@ -144,8 +144,8 @@ function Notifications() {
             filter === "unread"
               ? "bg-blue-600 text-white shadow-xs"
               : theme
-                ? "bg-slate-800 text-gray-400 hover:text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-2xs"
           }`}
         >
           Unread ({notifications.filter((n) => !n.read).length})
@@ -161,11 +161,11 @@ function Notifications() {
             className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
               item.read
                 ? theme
-                  ? "bg-slate-800/60 border-slate-700/60 text-gray-400"
-                  : "bg-slate-50/70 border-slate-200 text-slate-500"
+                  ? "bg-slate-900/60 border-slate-800/80 text-slate-400"
+                  : "bg-white/80 border-slate-200 text-slate-500 shadow-2xs"
                 : theme
-                  ? "bg-slate-800 border-slate-600 shadow-md"
-                  : "bg-white border-blue-200/80 shadow-xs"
+                  ? "bg-slate-900 border-slate-700 shadow-md text-slate-200"
+                  : "bg-white border-blue-200 shadow-xs text-slate-900"
             }`}
           >
             <div
@@ -221,7 +221,7 @@ function Notifications() {
         {filtered.length === 0 && (
           <div
             className={`p-12 text-center rounded-3xl border ${
-              theme ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200 shadow-xs"
+              theme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-xs"
             }`}
           >
             <Bell size={32} className="mx-auto text-slate-400 mb-2" />
@@ -238,7 +238,7 @@ function Notifications() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }
 

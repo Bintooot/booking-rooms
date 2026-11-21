@@ -46,6 +46,9 @@ export function normalizeBooking(b, fallback = {}) {
 
   return {
     ...b,
+    contact_phone: b.contact_phone || fallback.contact_phone || "",
+    total_price: Number(b.total_price) || Number(fallback.total_price) || 0,
+    special_requests: b.special_requests || fallback.special_requests || "",
     date: date || new Date().toISOString().split("T")[0],
     start_time: startTime,
     end_time: endTime,
